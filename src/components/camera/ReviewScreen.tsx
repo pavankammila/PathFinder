@@ -105,7 +105,7 @@ export function ReviewScreen({ initialGraph, imageUrl, hasExistingGraph, onImpor
     <div className="flex flex-col h-full relative">
       {showConfirm && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded shadow-xl w-80 text-center flex flex-col gap-4">
+          <div className="surface-panel p-6 rounded shadow-xl w-80 text-center flex flex-col gap-4">
             <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto" />
             <div>
               <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Overwrite Graph?</h3>
@@ -124,7 +124,7 @@ export function ReviewScreen({ initialGraph, imageUrl, hasExistingGraph, onImpor
           <p className="text-xs text-zinc-500 dark:text-zinc-400">Check the detected nodes, edges and weights before importing.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={onCancel} className="px-4 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800">CANCEL</button>
+          <button onClick={onCancel} className="px-4 py-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 surface-panel transition-colors border border-zinc-200 dark:border-zinc-800 rounded hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800">CANCEL</button>
           <button onClick={handleImport} disabled={!isValid} className="px-4 py-2 text-xs font-bold text-white dark:text-zinc-900 bg-indigo-600 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">IMPORT GRAPH</button>
         </div>
       </div>
@@ -137,7 +137,7 @@ export function ReviewScreen({ initialGraph, imageUrl, hasExistingGraph, onImpor
         </div>
         
         {/* Right: Data */}
-        <div className="w-1/2 overflow-y-auto p-4 bg-white dark:bg-zinc-900 flex flex-col gap-6">
+        <div className="w-1/2 overflow-y-auto p-4 surface-panel flex flex-col gap-6">
           {initialGraph.warnings.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 p-3 rounded text-amber-800 text-xs">
               <div className="font-bold mb-1 flex items-center gap-1"><AlertTriangle className="w-4 h-4"/> Warnings</div>

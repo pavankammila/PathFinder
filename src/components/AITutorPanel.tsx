@@ -66,7 +66,7 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed right-0 top-0 bottom-0 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-xl z-50 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-[600px] max-w-[90vw]' : 'w-[350px]'}`}>
+    <div className={`fixed right-0 top-0 bottom-0 surface-panel border-l border-zinc-200/50 dark:border-zinc-800/50 shadow-xl z-50 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-[600px] max-w-[90vw]' : 'w-[350px]'}`}>
       {/* Header */}
       <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0 bg-zinc-50 dark:bg-zinc-900/50">
         <div className="flex items-center gap-2">
@@ -111,8 +111,8 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
             <div className="text-xs text-zinc-500">
               <p className="mb-2 font-medium">Ask about the current algorithm...</p>
               <div className="flex flex-wrap justify-center gap-2 mt-4">
-                <button onClick={() => handleSend("Explain this step")} className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain this step</button>
-                <button onClick={() => handleSend("Explain Dijkstra")} className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain Dijkstra</button>
+                <button onClick={() => handleSend("Explain this step")} className="bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain this step</button>
+                <button onClick={() => handleSend("Explain Dijkstra")} className="bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain Dijkstra</button>
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
         
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200'}`}>
+            <div className={`max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-black/5 dark:bg-white/5 text-zinc-800 dark:text-zinc-200'}`}>
               {msg.role === 'model' ? (
                 <div className="font-sans [&>p]:mb-2 [&>p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ul:last-child]:mb-0 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_ol:last-child]:mb-0 [&_li]:mb-1 [&_code]:bg-black/5 [&_code]:dark:bg-white/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[12px] [&_pre]:bg-black/5 [&_pre]:dark:bg-white/10 [&_pre]:p-2 [&_pre]:rounded [&_pre_code]:bg-transparent [&_pre_code]:p-0">
                   <Markdown>{msg.content}</Markdown>
@@ -133,7 +133,7 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-lg px-4 py-3 flex items-center gap-2">
+            <div className="bg-black/5 dark:bg-white/5 text-zinc-800 dark:text-zinc-200 rounded-lg px-4 py-3 flex items-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span className="text-xs font-medium tracking-widest text-zinc-500">THINKING...</span>
             </div>
@@ -153,7 +153,7 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask about the current algorithm..."
-            className="flex-1 bg-zinc-100 dark:bg-zinc-800 border-none rounded-full px-4 py-2 text-[13px] text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 bg-black/5 dark:bg-white/5 border-none rounded-full px-4 py-2 text-[13px] text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             disabled={isLoading}
           />
           <button

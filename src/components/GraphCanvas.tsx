@@ -210,7 +210,7 @@ export function GraphCanvas({
       .attr('width', 24)
       .attr('height', 16)
       .attr('rx', 2)
-      .attr('fill', theme === 'dark' ? '#27272a' : 'white')
+      .attr('fill', theme === 'dark' ? 'rgba(24, 24, 27, 0.7)' : 'rgba(255, 255, 255, 0.7)')
       .attr('stroke', (theme === 'dark' ? '#3f3f46' : '#e4e4e7'));
 
     edgesMerge.select('.edge-label')
@@ -302,16 +302,16 @@ export function GraphCanvas({
       .each(function(d) {
          const el = d3.select(this);
          
-         let fill = theme === 'dark' ? '#27272a' : 'white';
-         let stroke = theme === 'dark' ? '#f4f4f5' : '#18181b';
+         let fill = theme === 'dark' ? 'rgba(24, 24, 27, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+         let stroke = theme === 'dark' ? '#3f3f46' : '#e4e4e7';
          let strokeWidth = 2;
 
-         if (pathNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#3730a3' : '#c7d2fe'; stroke = (theme === 'dark' ? '#818cf8' : '#4f46e5'); strokeWidth = 3; }
-         else if (activeNodeId === d.id) { fill = theme === 'dark' ? '#854d0e' : '#fef08a'; stroke = theme === 'dark' ? '#fde047' : '#ca8a04'; strokeWidth = 3; }
-         else if (d.id === sourceNodeId) { fill = theme === 'dark' ? '#14532d' : '#dcfce7'; stroke = theme === 'dark' ? '#4ade80' : '#16a34a'; strokeWidth = 2; }
-         else if (d.id === destNodeId) { fill = theme === 'dark' ? '#7f1d1d' : '#fee2e2'; stroke = theme === 'dark' ? '#f87171' : '#dc2626'; strokeWidth = 2; }
-         else if (visitedNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#3f3f46' : '#f4f4f5'; stroke = theme === 'dark' ? '#71717a' : '#a1a1aa'; strokeWidth = 2; }
-         else if (d.id === connectStartNodeId) { fill = theme === 'dark' ? '#312e81' : '#e0e7ff'; stroke = (theme === 'dark' ? '#818cf8' : '#4f46e5'); strokeWidth = 3; }
+         if (pathNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#0c4a6e' : '#e0f2fe'; stroke = (theme === 'dark' ? '#38bdf8' : '#0284c7'); strokeWidth = 3; }
+         else if (activeNodeId === d.id) { fill = theme === 'dark' ? '#083344' : '#ecfeff'; stroke = theme === 'dark' ? '#22d3ee' : '#06b6d4'; strokeWidth = 3; }
+         else if (d.id === sourceNodeId) { fill = theme === 'dark' ? '#164e63' : '#cffafe'; stroke = theme === 'dark' ? '#22d3ee' : '#06b6d4'; strokeWidth = 3; }
+         else if (d.id === destNodeId) { fill = theme === 'dark' ? '#881337' : '#ffe4e6'; stroke = theme === 'dark' ? '#fb7185' : '#f43f5e'; strokeWidth = 3; }
+         else if (visitedNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#082f49' : '#f0f9ff'; stroke = theme === 'dark' ? '#0369a1' : '#bae6fd'; strokeWidth = 2; }
+         else if (d.id === connectStartNodeId) { fill = theme === 'dark' ? '#0c4a6e' : '#e0f2fe'; stroke = (theme === 'dark' ? '#38bdf8' : '#0284c7'); strokeWidth = 3; }
          
          const curDist = distances ? distances[d.id] : undefined;
          // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -435,7 +435,7 @@ export function GraphCanvas({
       <svg ref={svgRef} className="w-full h-full outline-none" tabIndex={0} />
       <button 
         onClick={handleCenter}
-        className="absolute bottom-6 right-6 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full shadow-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none z-20"
+        className="absolute bottom-6 right-6 p-2 surface-floating rounded-full text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none z-20"
         title="Center Graph"
       >
         <Focus className="w-4 h-4" />

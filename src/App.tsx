@@ -460,9 +460,9 @@ export default function App() {
   const isExecutionActive = execState !== ExecutionState.IDLE;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors font-sans overflow-hidden select-none selection:bg-zinc-200 dark:selection:bg-zinc-700">
+    <div className="flex flex-col h-screen w-screen bg-transparent text-zinc-900 dark:text-zinc-100 transition-colors font-sans overflow-hidden select-none selection:bg-zinc-200 dark:selection:bg-zinc-700">
       {/* HEADER */}
-      <header className="h-12 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 shrink-0 z-50">
+      <header className="h-12 surface-header flex items-center justify-between px-4 shrink-0 z-50">
         <div className="flex items-center gap-2 sm:gap-4">
           <img 
             src="/logo-full.png" 
@@ -477,14 +477,14 @@ export default function App() {
             />
             <h1 className="text-[12px] font-bold tracking-widest uppercase leading-none">Pathfinder</h1>
           </div>
-          <div className="hidden md:flex flex-col ml-2 border-l border-zinc-200 dark:border-zinc-800 pl-4">
+          <div className="hidden md:flex flex-col ml-2 border-l border-zinc-200/50 dark:border-zinc-800/50 pl-4">
             <span className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Shortest Path</span>
             <span className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mt-0.5">Algorithm Laboratory</span>
           </div>
         </div>
         
         <div className="flex items-center gap-6">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-800 p-0.5 mr-2">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5 mr-2">
             <button onClick={handleUndo} disabled={past.length === 0} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Undo (Ctrl+Z)">
               <Undo2 className="w-3.5 h-3.5" />
             </button>
@@ -492,7 +492,7 @@ export default function App() {
               <Redo2 className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-800 p-0.5">
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5">
             <button onClick={handleReset} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Reset">
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -502,7 +502,7 @@ export default function App() {
             <button onClick={handleStep} disabled={execState === ExecutionState.COMPLETED} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Step">
               <SkipForward className="w-3.5 h-3.5" />
             </button>
-            <button onClick={handleRun} disabled={execState === ExecutionState.RUNNING || execState === ExecutionState.COMPLETED} className="w-7 h-7 flex items-center justify-center rounded bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:bg-zinc-300 dark:disabled:bg-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-500 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none ml-0.5" title="Run">
+            <button onClick={handleRun} disabled={execState === ExecutionState.RUNNING || execState === ExecutionState.COMPLETED} className="w-7 h-7 flex items-center justify-center rounded bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-400 hover:to-cyan-400 disabled:from-zinc-300 disabled:to-zinc-300 dark:disabled:from-zinc-800 dark:disabled:to-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-500 border-0 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none ml-0.5" title="Run">
               <Play className="w-3.5 h-3.5 fill-current" />
             </button>
           </div>
@@ -519,10 +519,10 @@ export default function App() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden">
         {/* LEFT SIDEBAR */}
-        <aside className={`w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0 overflow-y-auto ${!isLeftSidebarOpen ? 'hidden' : ''}`}>
-          <div className="p-4 space-y-6">
+        <aside className={`w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 lg:overflow-y-auto order-2 lg:order-none max-lg:!flex p-4 sm:p-6 lg:p-4 ${!isLeftSidebarOpen ? "hidden lg:hidden" : ""}`}>
+          <div className="space-y-6">
             
             <section>
               <div className="flex items-center justify-between mb-3">
@@ -562,12 +562,12 @@ export default function App() {
             <section>
               <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Algorithm</label>
               <div className="space-y-1">
-                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.DIJKSTRA ? 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.DIJKSTRA ? 'bg-black/5 dark:bg-white/5 border-zinc-200/50 dark:border-zinc-800/50' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
                   <input type="radio" name="algo" checked={algo === AlgorithmType.DIJKSTRA} onChange={() => setAlgo(AlgorithmType.DIJKSTRA)} disabled={isExecutionActive} className="sr-only" />
                   <div className={`w-1.5 h-1.5 rounded-full ${algo === AlgorithmType.DIJKSTRA ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-transparent border border-zinc-300'}`}></div>
                   <span className={`text-[11px] font-medium ${algo === AlgorithmType.DIJKSTRA ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>Dijkstra</span>
                 </label>
-                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.FLOYD_WARSHALL ? 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
+                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.FLOYD_WARSHALL ? 'bg-black/5 dark:bg-white/5 border-zinc-200/50 dark:border-zinc-800/50' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
                   <input type="radio" name="algo" checked={algo === AlgorithmType.FLOYD_WARSHALL} onChange={() => setAlgo(AlgorithmType.FLOYD_WARSHALL)} disabled={isExecutionActive} className="sr-only" />
                   <div className={`w-1.5 h-1.5 rounded-full ${algo === AlgorithmType.FLOYD_WARSHALL ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-transparent border border-zinc-300'}`}></div>
                   <span className={`text-[11px] font-medium ${algo === AlgorithmType.FLOYD_WARSHALL ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>Floyd-Warshall</span>
@@ -577,12 +577,12 @@ export default function App() {
 
             <section>
               <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Speed</label>
-              <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-800 p-0.5">
+              <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5">
                 {[0.5, 1, 2].map(s => (
                   <button 
                     key={s} 
                     onClick={() => setSpeed(s)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none ${speed === s ? 'bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none ${speed === s ? 'bg-transparent shadow-sm border border-zinc-200/50 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
                   >
                     {s}×
                   </button>
@@ -609,11 +609,11 @@ export default function App() {
         </aside>
 
         {/* CENTER CANVASES & PANELS */}
-        <main className="flex-1 flex flex-col min-w-0 bg-zinc-100 dark:bg-zinc-800 relative">
+        <main className="flex-1 flex flex-col min-w-0 bg-transparent relative order-1 lg:order-none min-h-[400px] lg:min-h-0 shrink-0 lg:shrink">
           {!isLeftSidebarOpen && (
             <button
               onClick={() => setIsLeftSidebarOpen(true)}
-              className="absolute top-4 left-4 z-20 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
+              className="absolute top-4 left-4 z-20 p-2 surface-floating rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
               title="Open Graph Panel"
             >
               <PanelLeftOpen className="w-4 h-4" />
@@ -622,13 +622,13 @@ export default function App() {
           {!isRightSidebarOpen && (
             <button
               onClick={() => setIsRightSidebarOpen(true)}
-              className="absolute top-4 right-4 z-20 p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
+              className="hidden lg:block absolute top-4 right-4 z-20 p-2 surface-floating rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
               title="Open Inspector Panel"
             >
               <PanelRightOpen className="w-4 h-4" />
             </button>
           )}
-          <div className={`absolute top-4 z-20 flex items-center gap-2 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full shadow-sm border border-zinc-200 dark:border-zinc-800 text-[10px] font-mono font-medium text-zinc-500 dark:text-zinc-400 transition-all duration-300 ${!isLeftSidebarOpen ? 'left-14' : 'left-4'}`}>
+          <div className={`absolute top-4 z-20 flex items-center gap-2 bg-transparent px-3 py-1.5 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800/50 text-[10px] font-mono font-medium text-zinc-500 dark:text-zinc-400 transition-all duration-300 ${!isLeftSidebarOpen ? 'left-14' : 'left-4'}`}>
             MODE: <span className="text-zinc-900 dark:text-zinc-100">{mode.replace('_', ' ')}</span>
           </div>
 
@@ -670,7 +670,7 @@ export default function App() {
 
             {nodes.length === 0 && (
               <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                <div className="w-12 h-12 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-center mb-3 text-zinc-300 shadow-sm mx-auto">
+                <div className="w-12 h-12 rounded border border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex items-center justify-center mb-3 text-zinc-300 shadow-sm mx-auto">
                   <Plus className="w-5 h-5" />
                 </div>
                 <span className="text-zinc-500 dark:text-zinc-400 text-xs font-medium">Workspace Empty</span>
@@ -678,7 +678,7 @@ export default function App() {
               </div>
             )}
             
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded-full px-4 py-2 shadow-sm z-20">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 surface-floating rounded-full px-4 py-2 z-20">
               <button onClick={() => setIsTutorOpen(!isTutorOpen)} className={`p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none transition-colors flex items-center gap-1.5 pl-2 ${isTutorOpen ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`} title="PATHFINDER AI">
                 <Bot className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-bold tracking-widest uppercase leading-none mr-1">AI</span>
@@ -696,8 +696,8 @@ export default function App() {
         </main>
 
         {/* RIGHT SIDEBAR: INSPECTOR */}
-        <aside className={`w-80 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0 overflow-y-auto ${!isRightSidebarOpen ? 'hidden' : ''}`}>
-          <div className="p-4 space-y-6">
+        <aside className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 lg:overflow-y-auto order-3 lg:order-none max-lg:!flex p-4 sm:p-6 lg:p-4 ${!isRightSidebarOpen ? 'hidden lg:hidden' : ''}`}>
+          <div className="space-y-6">
             
             <section>
               <div className="flex items-center justify-between mb-3">
@@ -706,7 +706,7 @@ export default function App() {
                   <PanelRightClose className="w-4 h-4" />
                 </button>
               </div>
-              <div className="bg-zinc-50 dark:bg-zinc-950 rounded p-3 border border-zinc-100 dark:border-zinc-800/50 space-y-2">
+              <div className="bg-black/5 dark:bg-white/5 rounded p-3 border border-zinc-200/30 dark:border-zinc-800/30/50 space-y-2">
                 {algo === AlgorithmType.FLOYD_WARSHALL ? (
                   <>
                     <div className="flex justify-between items-center text-[10px]">
@@ -757,17 +757,17 @@ export default function App() {
             {algo === AlgorithmType.FLOYD_WARSHALL ? (
               <section>
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Distance Matrix</label>
-                <div className="border border-zinc-200 dark:border-zinc-800 rounded overflow-x-auto">
+                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-hidden">
                   <table className="w-full text-center text-[10px] min-w-max">
-                    <thead className="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
+                    <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 border-b border-zinc-200/50 dark:border-zinc-800/50">
                       <tr className="text-zinc-500 dark:text-zinc-400">
-                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 sticky left-0 z-10 w-8"></th>
+                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-900/50 sticky left-0 z-10 w-8"></th>
                         {nodes.map(n => (
-                          <th key={n.id} className="px-2 py-1.5 font-medium border-r border-zinc-200 dark:border-zinc-800">{n.label}</th>
+                          <th key={n.id} className="px-2 py-1.5 font-medium border-r border-zinc-200/50 dark:border-zinc-800/50">{n.label}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-zinc-900">
+                    <tbody className="bg-transparent">
                       {nodes.length === 0 ? (
                         <tr>
                           <td colSpan={1} className="px-2 py-6 text-center text-zinc-400 dark:text-zinc-500 italic font-mono text-[9px]">
@@ -777,7 +777,7 @@ export default function App() {
                       ) : (
                         nodes.map(u => (
                           <tr key={u.id} className="border-b border-zinc-50 dark:border-zinc-800/30 last:border-0">
-                            <td className="px-2 py-1.5 font-mono border-r border-zinc-200 dark:border-zinc-800 font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950 sticky left-0 z-10">
+                            <td className="px-2 py-1.5 font-mono border-r border-zinc-200/50 dark:border-zinc-800/50 font-bold text-zinc-500 dark:text-zinc-400 bg-white/50 dark:bg-zinc-900/50 sticky left-0 z-10">
                               {u.label}
                             </td>
                             {nodes.map(v => {
@@ -800,7 +800,7 @@ export default function App() {
                 </div>
                 
                 {currentStep?.operationType === OperationType.COMPARE_PATH && (
-                  <div className="mt-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded p-2 text-[10px]">
+                  <div className="mt-3 bg-black/5 dark:bg-white/5 border border-zinc-200/50 dark:border-zinc-800/50 rounded p-2 text-[10px]">
                     <div className="text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1 text-[9px] font-bold">Current Comparison</div>
                     <div className="font-mono text-zinc-700 dark:text-zinc-300">
                       D[{nodes.find(n => n.id === currentStep.predecessor)?.label}][{nodes.find(n => n.id === currentStep.updatedNode)?.label}] = {currentStep.previousDistance === Infinity ? '∞' : currentStep.previousDistance}
@@ -823,17 +823,17 @@ export default function App() {
             ) : (
               <section>
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Distance Table</label>
-                <div className="border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
+                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-hidden">
                   <table className="w-full text-left text-[10px]">
-                    <thead className="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
+                    <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 border-b border-zinc-200/50 dark:border-zinc-800/50">
                       <tr className="text-zinc-500 dark:text-zinc-400">
-                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200 dark:border-zinc-800">NODE</th>
-                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200 dark:border-zinc-800">DIST</th>
-                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200 dark:border-zinc-800">PRED</th>
+                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200/50 dark:border-zinc-800/50">NODE</th>
+                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200/50 dark:border-zinc-800/50">DIST</th>
+                        <th className="px-2 py-1.5 font-medium border-r border-zinc-200/50 dark:border-zinc-800/50">PRED</th>
                         <th className="px-2 py-1.5 font-medium">STATUS</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-zinc-900">
+                    <tbody className="bg-transparent">
                       {nodes.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-2 py-6 text-center text-zinc-400 dark:text-zinc-500 italic font-mono text-[9px]">
@@ -856,9 +856,9 @@ export default function App() {
   
                           return (
                             <tr key={node.id} className="border-b border-zinc-50 dark:border-zinc-800/30 last:border-0">
-                              <td className="px-2 py-1.5 font-mono border-r border-zinc-100 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-100">{node.label}</td>
-                              <td className="px-2 py-1.5 font-mono border-r border-zinc-100 dark:border-zinc-800/50 text-zinc-500 dark:text-zinc-400">{distDisplay}</td>
-                              <td className="px-2 py-1.5 font-mono border-r border-zinc-100 dark:border-zinc-800/50 text-zinc-500 dark:text-zinc-400">{predDisplay}</td>
+                              <td className="px-2 py-1.5 font-mono border-r border-zinc-200/30 dark:border-zinc-800/30/50 text-zinc-900 dark:text-zinc-100">{node.label}</td>
+                              <td className="px-2 py-1.5 font-mono border-r border-zinc-200/30 dark:border-zinc-800/30/50 text-zinc-500 dark:text-zinc-400">{distDisplay}</td>
+                              <td className="px-2 py-1.5 font-mono border-r border-zinc-200/30 dark:border-zinc-800/30/50 text-zinc-500 dark:text-zinc-400">{predDisplay}</td>
                               <td className={`px-2 py-1.5 font-medium ${statusColor}`}>{status}</td>
                             </tr>
                           );
@@ -873,7 +873,7 @@ export default function App() {
             <section>
               <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Result</label>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded p-2 col-span-2">
+                <div className={`surface-card rounded p-3 col-span-2 transition-colors duration-500 ${execState === ExecutionState.COMPLETED && algoResult?.path && !algoResult?.negativeCycle ? "bg-sky-50/50 dark:bg-sky-900/10 border-sky-200/50 dark:border-sky-800/50 shadow-[0_0_15px_rgba(14,165,233,0.1)]" : ""}`}>
                   <div className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter mb-1">Shortest Path</div>
                   <div className="font-mono text-[11px] text-zinc-900 dark:text-zinc-100 break-words">
                     {execState === ExecutionState.ERROR ? <span className="text-red-500">ALGORITHM ERROR</span> :
@@ -884,19 +884,19 @@ export default function App() {
                      <span className="text-zinc-500 dark:text-zinc-400">Not computed</span>)}
                   </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded p-2">
+                <div className={`surface-card rounded p-3 transition-colors duration-500 ${execState === ExecutionState.COMPLETED && algoResult?.path && !algoResult?.negativeCycle ? "bg-sky-50/50 dark:bg-sky-900/10 border-sky-200/50 dark:border-sky-800/50" : ""}`}>
                   <div className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter mb-1">Total Cost</div>
                   <div className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {execState === ExecutionState.COMPLETED && algoResult?.path && !algoResult?.negativeCycle ? algoResult.cost : '--'}
                   </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded p-2">
+                <div className="surface-card rounded p-3">
                   <div className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter mb-1">Nodes Visited</div>
                   <div className="font-mono text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {execState === ExecutionState.COMPLETED && currentStep ? currentStep.visitedNodes.length : '--'}
                   </div>
                 </div>
-                <div className="bg-white dark:bg-zinc-900 transition-colors border border-zinc-200 dark:border-zinc-800 rounded p-2 col-span-2">
+                <div className="surface-card rounded p-3 col-span-2">
                   <div className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter mb-1">Edges Explored</div>
                   <div className="font-mono text-[11px] text-zinc-900 dark:text-zinc-100">
                     {execState === ExecutionState.COMPLETED ? steps.filter(s => s.operationType === OperationType.EXPLORE_EDGE).length : '--'}
@@ -907,7 +907,7 @@ export default function App() {
 
             <section>
               <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">How it works</label>
-              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed border border-zinc-100 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-950/50 p-3 rounded">
+              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed border border-zinc-200/30 dark:border-zinc-800/30/50 bg-black/5 dark:bg-white/5/50 p-3 rounded">
                 <span className="font-medium text-zinc-700 dark:text-zinc-300 block mb-1">{algorithmMetadata[algo].name}</span>
                 {algorithmMetadata[algo].description}
                 <div className="mt-2 grid grid-cols-2 gap-1 text-[9px] font-mono">
@@ -922,18 +922,18 @@ export default function App() {
       </div>
 
       {/* BOTTOM: EXECUTION TRACE */}
-      <footer className="h-32 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shrink-0">
-        <div className="h-8 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center px-4 justify-between bg-zinc-50 dark:bg-zinc-950/50">
+      <footer className="h-32 border-t border-zinc-200/50 dark:border-zinc-800/50 surface-panel flex flex-col shrink-0">
+        <div className="h-8 border-b border-zinc-200/30 dark:border-zinc-800/30/50 flex items-center px-4 justify-between bg-black/5 dark:bg-white/5/50">
           <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Execution Trace Log</span>
         </div>
-        <div className="flex-1 flex flex-col font-mono text-[10px] bg-zinc-50 dark:bg-zinc-950/30 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 flex flex-col font-mono text-[10px] bg-black/5 dark:bg-white/5/30 overflow-y-auto p-2 space-y-1">
           {steps.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <span className="text-zinc-400 dark:text-zinc-500 italic">No execution trace available. Run an algorithm to generate steps.</span>
             </div>
           ) : (
             steps.slice(0, currentStepIndex + 1).map((step, idx) => (
-              <div key={idx} className="flex items-center gap-4 px-2 py-1 bg-white dark:bg-zinc-900 transition-colors border border-zinc-100 dark:border-zinc-800/50 rounded text-zinc-600 dark:text-zinc-400 shadow-sm animate-in fade-in group relative">
+              <div key={idx} className="flex items-center gap-4 px-2 py-1 bg-transparent transition-colors border border-zinc-200/30 dark:border-zinc-800/30/50 rounded text-zinc-600 dark:text-zinc-400 shadow-sm animate-in fade-in group relative">
                 <span className="text-zinc-400 dark:text-zinc-500 font-bold shrink-0 w-16">STEP {String(step.stepNumber).padStart(2, '0')}</span>
                 <span className="text-indigo-500 shrink-0 w-32 truncate">{step.operationType}</span>
                 <span className="text-zinc-900 dark:text-zinc-100 flex-1">{step.explanationText}</span>
