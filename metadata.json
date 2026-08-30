@@ -1,0 +1,6 @@
+{
+  "name": "PATHFINDER",
+  "description": "Shortest Path Algorithm Laboratory - A university-level Data Structures and Algorithms educational application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
