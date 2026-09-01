@@ -18,6 +18,8 @@
 
 **PATHFINDER** is an interactive educational web application for constructing weighted graphs and visually exploring shortest-path algorithms.
 
+**Live Website** - https://pathfinder-50f0.onrender.com/
+
 Instead of displaying only the final answer, PATHFINDER shows how an algorithm reaches that answer through step-by-step execution, live distance updates, graph-state changes, and an execution trace.
 
 The project is built with a focus on:
