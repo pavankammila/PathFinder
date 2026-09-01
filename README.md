@@ -316,8 +316,6 @@ Potential future improvements include:
 
 This project is intended primarily as an academic and educational project.
 
-Add your preferred license here if you plan to distribute the project publicly.
-
 ---
 
 <p align="center">
