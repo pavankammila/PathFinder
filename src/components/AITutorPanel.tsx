@@ -19,7 +19,13 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (messagesEndRef.current && messagesEndRef.current.parentElement) {
+        const parent = messagesEndRef.current.parentElement;
+        parent.scrollTo({
+          top: parent.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
     }, 100);
     return () => clearTimeout(timeout);
   }, [messages, isLoading]);

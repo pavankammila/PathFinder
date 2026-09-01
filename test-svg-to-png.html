@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <svg id="mysvg" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="50" fill="red" />
+    <text x="100" y="100" fill="white" font-family="sans-serif" text-anchor="middle" dominant-baseline="middle">Hello</text>
+  </svg>
+  <script>
+    const svg = document.getElementById('mysvg');
+    const xml = new XMLSerializer().serializeToString(svg);
+    const svg64 = btoa(xml);
+    const b64Start = 'data:image/svg+xml;base64,';
+    const image64 = b64Start + svg64;
+    console.log(image64);
+  </script>
+</body>
+</html>

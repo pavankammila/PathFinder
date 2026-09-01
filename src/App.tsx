@@ -318,8 +318,12 @@ export default function App() {
   }, [execState, speed, steps.length]);
 
   useEffect(() => {
-    if (traceEndRef.current) {
-      traceEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (traceEndRef.current && traceEndRef.current.parentElement) {
+      const parent = traceEndRef.current.parentElement;
+      parent.scrollTo({
+        top: parent.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [currentStepIndex]);
 
