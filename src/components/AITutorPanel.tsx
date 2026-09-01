@@ -50,14 +50,15 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
       });
 
       if (!response.ok) {
-        throw new Error('API Error');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'API Error');
       }
 
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'model', content: data.text }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', content: "PATHFINDER AI is temporarily unavailable." }]);
+      setMessages(prev => [...prev, { role: 'model', content: error instanceof Error ? error.message : "PATHFINDER AI is temporarily unavailable." }]);
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +67,7 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed right-0 top-0 bottom-0 surface-panel border-l border-zinc-200/50 dark:border-zinc-800/50 shadow-xl z-50 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-[600px] max-w-[90vw]' : 'w-[350px]'}`}>
+    <div className={`fixed right-0 top-0 bottom-0 surface-panel border-l border-zinc-200/50 dark:border-zinc-800/50 shadow-xl z-50 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-full sm:w-[600px] sm:max-w-[90vw]' : 'w-full sm:w-[350px]'}`}>
       {/* Header */}
       <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0 bg-zinc-50 dark:bg-zinc-900/50">
         <div className="flex items-center gap-2">

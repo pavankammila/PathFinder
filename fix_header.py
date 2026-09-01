@@ -1,20 +1,27 @@
 import re
 
-filepath = 'src/App.tsx'
-with open(filepath, 'r') as f:
+with open('src/App.tsx', 'r') as f:
     content = f.read()
 
-# Make header flex-wrap and remove fixed height
-content = content.replace(
-    '<header className="h-12 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 shrink-0 z-50">',
-    '<header className="min-h-[48px] py-2 lg:py-0 lg:h-12 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-wrap lg:flex-nowrap items-center justify-between px-4 gap-2 shrink-0 z-50">'
-)
+# Desktop logo: remove transition-all, set exact pixel rendering or remove w-auto if it causes fractional scaling.
+# h-7 is 28px. 28 * 3 = 84.
+desktop_logo_regex = r'<img\s+src="/logo-full\.png"\s+alt="PathFinder"\s+className="hidden sm:block h-6 sm:h-7 w-auto object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 transition-all"\s*/>'
+desktop_logo_repl = r'<img src="/logo-full.png" alt="PathFinder" className="hidden sm:block h-[28px] w-[84px] object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 style={{ imageRendering: \'crisp-edges\' }}" />'
+# Wait, let's just do standard tailwind classes
+desktop_logo_repl = r'<img src="/logo-full.png" alt="PathFinder" className="hidden sm:block h-7 w-[84px] object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0" />'
+content = re.sub(desktop_logo_regex, desktop_logo_repl, content)
 
-# Execution controls gap
-content = content.replace(
-    '<div className="flex items-center gap-6">',
-    '<div className="flex flex-wrap items-center gap-2 lg:gap-6 justify-center w-full lg:w-auto order-3 lg:order-none mt-2 lg:mt-0">'
-)
+# Mobile icon: remove HTML text and set exact dimensions.
+mobile_logo_regex = r'<div className="flex sm:hidden items-center gap-2">\s*<img\s+src="/logo-icon\.png"\s+alt="PathFinder Icon"\s+className="h-5 w-auto object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 transition-all"\s*/>\s*<h1 className="text-\[12px\] font-bold tracking-widest uppercase leading-none">Pathfinder</h1>\s*</div>'
+mobile_logo_repl = r'<div className="flex sm:hidden items-center justify-center w-full">\s*<img src="/logo-icon.png" alt="PathFinder Icon" className="h-6 w-6 object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0" />\s*</div>'
+content = re.sub(mobile_logo_regex, mobile_logo_repl, content)
 
-with open(filepath, 'w') as f:
+# Subtitle
+subtitle_regex = r'<span className="text-\[9px\] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Shortest Path</span>\s*<span className="text-\[9px\] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mt-0\.5">Algorithm Laboratory</span>'
+subtitle_repl = r'<span className="text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider antialiased leading-none">Shortest Path</span>\n            <span className="text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider antialiased leading-none mt-0.5">Algorithm Laboratory</span>'
+content = re.sub(subtitle_regex, subtitle_repl, content)
+
+with open('src/App.tsx', 'w') as f:
     f.write(content)
+
+print("Replaced!")

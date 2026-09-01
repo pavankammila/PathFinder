@@ -17,8 +17,13 @@ async function startServer() {
     try {
       const { messages, context } = req.body;
       
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({ error: "Gemini API key is missing. Please add it in Settings > Secrets." });
+      }
+
       const ai = new GoogleGenAI({ 
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey,
         httpOptions: {
           headers: {
             'User-Agent': 'aistudio-build',
@@ -54,7 +59,7 @@ ${JSON.stringify(context, null, 2)}`;
       }));
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-3.7-flash",
         contents,
         config: {
           systemInstruction,
@@ -65,7 +70,16 @@ ${JSON.stringify(context, null, 2)}`;
       res.json({ text: response.text });
     } catch (error: any) {
       console.error("AI Chat Error:", error);
-      res.status(500).json({ error: error.message });
+      let errorMsg = error.message;
+      try {
+        const parsed = JSON.parse(error.message);
+        if (parsed.error && parsed.error.message) {
+           errorMsg = parsed.error.message;
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      res.status(500).json({ error: errorMsg });
     }
   });
 

@@ -55,7 +55,7 @@ export function CameraModal({ isOpen, onClose, onImport, hasExistingGraph }: Cam
   // If we have a successful result, show the review screen
   if (recognitionResult?.status === 'SUCCESS' && recognitionResult.graph && imageUrl) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-8">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-8">
         <div className="surface-panel rounded-lg shadow-xl w-full h-full max-w-6xl overflow-hidden">
           <ReviewScreen 
             initialGraph={recognitionResult.graph} 
@@ -70,7 +70,7 @@ export function CameraModal({ isOpen, onClose, onImport, hasExistingGraph }: Cam
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="surface-panel rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
           <h2 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">

@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Play, Pause, SkipForward, RotateCcw, Plus, Link2, Trash2,
-  MapPin, Flag, Camera, Settings2, Map, Moon, Sun, Eraser, Bot, PanelLeftClose, PanelRightClose, PanelLeftOpen, PanelRightOpen, Undo2, Redo2
+  MapPin, Flag, Camera, Settings2, Map, Moon, Sun, Eraser, Bot, PanelLeftClose, PanelRightClose, PanelLeftOpen, PanelRightOpen, Undo2, Redo2,
+  ChevronDown, Check, Share2
 } from 'lucide-react';
 import { Node, Edge, AlgorithmStep, OperationType } from './types';
 import { GraphCanvas } from './components/GraphCanvas';
@@ -57,6 +58,8 @@ export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [mode, setMode] = useState<EditorMode>(EditorMode.DEFAULT);
+  const [allowDoubleClickMove, setAllowDoubleClickMove] = useState(false);
+  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   
   const [sourceNodeId, setSourceNodeId] = useState<string | null>(null);
   const [destNodeId, setDestNodeId] = useState<string | null>(null);
@@ -66,6 +69,7 @@ export default function App() {
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
   
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isTutorOpen, setIsTutorOpen] = useState(false);
@@ -121,6 +125,42 @@ export default function App() {
     };
   }, [handleUndo, handleRedo]);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const graphData = urlParams.get('graph');
+    if (graphData) {
+      try {
+        const decoded = decodeURIComponent(atob(graphData));
+        const parsed = JSON.parse(decoded);
+        if (parsed.nodes && parsed.edges) {
+          setNodes(parsed.nodes);
+          setEdges(parsed.edges);
+          if (parsed.nodes.length > 0) {
+            setSourceNodeId(parsed.nodes[0].id);
+            setDestNodeId(parsed.nodes[parsed.nodes.length - 1].id);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse graph from URL", e);
+      }
+    }
+  }, []);
+
+  const handleShareGraph = () => {
+    try {
+      const data = JSON.stringify({ nodes, edges });
+      const encoded = btoa(encodeURIComponent(data));
+      const url = new URL(window.location.href);
+      url.searchParams.set('graph', encoded);
+      
+      navigator.clipboard.writeText(url.toString());
+      showSuccess('Link copied to clipboard!');
+    } catch (e) {
+      console.error('Failed to share graph', e);
+      showError('Failed to generate share link.');
+    }
+  };
+
   // Algorithm Execution State
   const [algo, setAlgo] = useState<AlgorithmType>(AlgorithmType.DIJKSTRA);
   const [speed, setSpeed] = useState<number>(1);
@@ -140,6 +180,11 @@ export default function App() {
 
 
 
+
+  const showSuccess = useCallback((msg: string) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(null), 3000);
+  }, []);
 
   const showError = useCallback((msg: string) => {
     setErrorMsg(msg);
@@ -326,18 +371,6 @@ export default function App() {
     }
   }, [mode, nodes, clearExecutionState]);
 
-  const handleNodeDoubleClick = useCallback((nodeId: string) => {
-    if (mode === EditorMode.DEFAULT) {
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-        const newLabel = window.prompt("Enter new label for this node:", node.label);
-        if (newLabel !== null && newLabel.trim() !== "") {
-          setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, label: newLabel.trim() } : n));
-          clearExecutionState();
-        }
-      }
-    }
-  }, [mode, nodes, clearExecutionState]);
 
   const handleNodeClick = useCallback((nodeId: string) => {
     switch (mode) {
@@ -454,36 +487,37 @@ export default function App() {
     }
   };
 
-  const getModeClass = (m: EditorMode) => `w-full flex items-center gap-2 px-3 py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === m ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}`;
-  const getDeleteModeClass = () => `w-full flex items-center gap-2 px-3 py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === EditorMode.DELETE ? 'bg-red-600 text-white dark:text-zinc-900 shadow-sm' : 'text-red-600 hover:bg-red-50 hover:text-red-700'}`;
+  const getModeClass = (m: EditorMode) => `w-full flex items-center gap-2 px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === m ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}`;
+  const getDeleteModeClass = () => `w-full flex items-center gap-2 px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === EditorMode.DELETE ? 'bg-red-600 text-white dark:text-zinc-900 shadow-sm' : 'text-red-600 hover:bg-red-50 hover:text-red-700'}`;
 
   const isExecutionActive = execState !== ExecutionState.IDLE;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-transparent text-zinc-900 dark:text-zinc-100 transition-colors font-sans overflow-hidden select-none selection:bg-zinc-200 dark:selection:bg-zinc-700">
+    <div className="flex flex-col min-h-screen xl:h-screen w-full bg-transparent text-zinc-900 dark:text-zinc-100 transition-colors font-sans overflow-x-hidden xl:overflow-hidden select-none selection:bg-zinc-200 dark:selection:bg-zinc-700">
       {/* HEADER */}
-      <header className="h-12 surface-header flex items-center justify-between px-4 shrink-0 z-50">
+      <header className="min-h-[48px] h-auto py-2 sm:py-0 sm:h-12 surface-header flex flex-wrap items-center justify-between px-4 shrink-0 z-50 gap-y-2">
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Desktop/Tablet Logo: exact 3:1 integer bounds to prevent subpixel blur */}
           <img 
             src="/logo-full.png" 
             alt="PathFinder" 
-            className="hidden sm:block h-6 sm:h-7 w-auto object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 transition-all"
+            className="hidden sm:block h-[28px] w-[84px] object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0" 
           />
-          <div className="flex sm:hidden items-center gap-2">
+          {/* Mobile Icon: exact integer bounds to prevent subpixel blur, forcing 1:1 since 1.03 is visually imperceptible */}
+          <div className="flex sm:hidden items-center justify-center">
             <img 
               src="/logo-icon.png" 
               alt="PathFinder Icon" 
-              className="h-5 w-auto object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 transition-all"
+              className="h-[24px] w-[24px] object-fill invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0" 
             />
-            <h1 className="text-[12px] font-bold tracking-widest uppercase leading-none">Pathfinder</h1>
           </div>
           <div className="hidden md:flex flex-col ml-2 border-l border-zinc-200/50 dark:border-zinc-800/50 pl-4">
-            <span className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Shortest Path</span>
-            <span className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mt-0.5">Algorithm Laboratory</span>
+            <span className="text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider antialiased leading-none">Shortest Path</span>
+            <span className="text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider antialiased leading-none mt-0.5">Algorithm Laboratory</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-6 justify-center w-full md:w-auto order-last md:order-none mt-1 md:mt-0">
           <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5 mr-2">
             <button onClick={handleUndo} disabled={past.length === 0} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Undo (Ctrl+Z)">
               <Undo2 className="w-3.5 h-3.5" />
@@ -510,24 +544,33 @@ export default function App() {
 
         <div className="flex items-center gap-3">
           <button 
+            onClick={handleShareGraph}
+            title="Share Graph"
+            className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">SHARE</span>
+          </button>
+          <button 
             onClick={openCameraModal}
             className="flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           >
             <Camera className="w-3.5 h-3.5" />
-            CAMERA INPUT
+            <span className="hidden sm:inline">CAMERA INPUT</span>
+            <span className="sm:hidden">SCAN</span>
           </button>
         </div>
       </header>
 
-      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden">
+      <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
         {/* LEFT SIDEBAR */}
-        <aside className={`w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 lg:overflow-y-auto order-2 lg:order-none max-lg:!flex p-4 sm:p-6 lg:p-4 ${!isLeftSidebarOpen ? "hidden lg:hidden" : ""}`}>
+        <aside className={`w-full xl:w-64 border-b xl:border-b-0 xl:border-r border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-2 xl:order-none max-xl:!flex p-4 sm:p-6 xl:p-4 ${!isLeftSidebarOpen ? "hidden xl:hidden" : ""}`}>
           <div className="space-y-6">
             
             <section>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-0">Graph</label>
-                <button onClick={() => setIsLeftSidebarOpen(false)} className="p-1 -mr-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" title="Close Panel">
+                <button onClick={() => setIsLeftSidebarOpen(false)} className="p-1 -mr-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden xl:block" title="Close Panel">
                   <PanelLeftClose className="w-4 h-4" />
                 </button>
               </div>
@@ -552,7 +595,7 @@ export default function App() {
                 <button 
                   onClick={handleClearAll} 
                   disabled={isExecutionActive} 
-                  className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-400"
+                  className="w-full flex items-center gap-2 px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-400"
                 >
                   <Eraser className="w-3.5 h-3.5" /> Clear Workspace
                 </button>
@@ -598,7 +641,7 @@ export default function App() {
                     key={preset} 
                     onClick={() => handleLoadPreset(preset)}
                     disabled={isExecutionActive}
-                    className="w-full text-left px-3 py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 border border-transparent disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full text-left px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 border border-transparent disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {preset}
                   </button>
@@ -609,7 +652,7 @@ export default function App() {
         </aside>
 
         {/* CENTER CANVASES & PANELS */}
-        <main className="flex-1 flex flex-col min-w-0 bg-transparent relative order-1 lg:order-none min-h-[400px] lg:min-h-0 shrink-0 lg:shrink">
+        <main className="flex-1 flex flex-col min-w-0 bg-transparent relative order-1 xl:order-none min-h-[350px] sm:min-h-[400px] xl:min-h-0 xl:min-h-0 shrink-0 xl:shrink">
           {!isLeftSidebarOpen && (
             <button
               onClick={() => setIsLeftSidebarOpen(true)}
@@ -622,16 +665,76 @@ export default function App() {
           {!isRightSidebarOpen && (
             <button
               onClick={() => setIsRightSidebarOpen(true)}
-              className="hidden lg:block absolute top-4 right-4 z-20 p-2 surface-floating rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
+              className="hidden xl:block absolute top-4 right-4 z-20 p-2 surface-floating rounded-md text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none"
               title="Open Inspector Panel"
             >
               <PanelRightOpen className="w-4 h-4" />
             </button>
           )}
-          <div className={`absolute top-4 z-20 flex items-center gap-2 bg-transparent px-3 py-1.5 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800/50 text-[10px] font-mono font-medium text-zinc-500 dark:text-zinc-400 transition-all duration-300 ${!isLeftSidebarOpen ? 'left-14' : 'left-4'}`}>
-            MODE: <span className="text-zinc-900 dark:text-zinc-100">{mode.replace('_', ' ')}</span>
+          <div className={`absolute top-4 z-20 transition-all duration-300 ${!isLeftSidebarOpen ? 'left-14' : 'left-4'}`}>
+            <button 
+              onClick={() => setIsModeMenuOpen(!isModeMenuOpen)}
+              className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full shadow-sm border border-zinc-200/50 dark:border-zinc-800/50 text-[10px] font-mono font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:outline-none"
+            >
+              MODE: <span className="text-zinc-900 dark:text-zinc-100">{mode.replace('_', ' ')}</span>
+              <ChevronDown className="w-3 h-3 opacity-50" />
+            </button>
+            
+            {isModeMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsModeMenuOpen(false)}></div>
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 rounded-lg shadow-lg z-20 py-1 overflow-hidden">
+                  <div className="max-h-[60vh] overflow-y-auto">
+                    {[
+                      EditorMode.DEFAULT,
+                      EditorMode.ADD_NODE,
+                      EditorMode.CONNECT,
+                      EditorMode.DELETE,
+                      EditorMode.SELECT_SOURCE,
+                      EditorMode.SELECT_DEST
+                    ].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => {
+                          handleModeSelect(m);
+                          setIsModeMenuOpen(false);
+                        }}
+                        disabled={isExecutionActive}
+                        className="w-full text-left px-3 py-2 text-[11px] font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 flex items-center justify-between disabled:opacity-50 text-zinc-700 dark:text-zinc-300"
+                      >
+                        {m.replace('_', ' ')}
+                        {mode === m && <Check className="w-3 h-3 text-zinc-900 dark:text-zinc-100" />}
+                      </button>
+                    ))}
+                    <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1"></div>
+                    <button
+                      onClick={() => {
+                        setAllowDoubleClickMove(!allowDoubleClickMove);
+                        setIsModeMenuOpen(false);
+                      }}
+                      disabled={isExecutionActive}
+                      className="w-full text-left px-3 py-2 text-[11px] font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 flex items-center justify-between disabled:opacity-50 text-zinc-700 dark:text-zinc-300"
+                    >
+                      DOUBLE-CLICK TO MOVE NODE
+                      {allowDoubleClickMove && <Check className="w-3 h-3 text-zinc-900 dark:text-zinc-100" />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {allowDoubleClickMove && mode === EditorMode.DEFAULT && (
+              <span className="hidden sm:inline absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap text-[10px] font-medium text-zinc-500 opacity-70 pointer-events-none">
+                Double-click a node to move
+              </span>
+            )}
           </div>
 
+          {successMsg && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-50 text-emerald-600 px-4 py-2 rounded shadow-sm border border-emerald-200 text-[11px] font-medium animate-in fade-in slide-in-from-top-2">
+              {successMsg}
+            </div>
+          )}
           {errorMsg && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-50 text-red-600 px-4 py-2 rounded shadow-sm border border-red-200 text-[11px] font-medium animate-in fade-in slide-in-from-top-2">
               {errorMsg}
@@ -648,6 +751,7 @@ export default function App() {
                 mode={mode}
                 sourceNodeId={algo === AlgorithmType.FLOYD_WARSHALL && execState !== ExecutionState.COMPLETED && execState !== ExecutionState.IDLE && currentStep?.predecessor ? currentStep.predecessor : sourceNodeId}
                 destNodeId={algo === AlgorithmType.FLOYD_WARSHALL && execState !== ExecutionState.COMPLETED && execState !== ExecutionState.IDLE && currentStep?.updatedNode ? currentStep.updatedNode : destNodeId}
+                allowDoubleClickMove={allowDoubleClickMove}
                 connectStartNodeId={connectStartNodeId}
                 activeNodeId={currentStep?.currentNode}
                 activeEdgeId={currentStep?.affectedEdge}
@@ -661,8 +765,7 @@ export default function App() {
                 readonly={execState !== ExecutionState.IDLE && execState !== ExecutionState.ERROR}
                 theme={theme}
                 onNodeClick={handleNodeClick}
-                onNodeDoubleClick={handleNodeDoubleClick}
-                onEdgeClick={handleEdgeClick}
+                                onEdgeClick={handleEdgeClick}
                 onCanvasClick={handleCanvasClick}
                 onNodeMove={handleNodeMove}
               />
@@ -696,13 +799,13 @@ export default function App() {
         </main>
 
         {/* RIGHT SIDEBAR: INSPECTOR */}
-        <aside className={`w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 lg:overflow-y-auto order-3 lg:order-none max-lg:!flex p-4 sm:p-6 lg:p-4 ${!isRightSidebarOpen ? 'hidden lg:hidden' : ''}`}>
+        <aside className={`w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-3 xl:order-none max-xl:!flex p-4 sm:p-6 xl:p-4 ${!isRightSidebarOpen ? 'hidden xl:hidden' : ''}`}>
           <div className="space-y-6">
             
             <section>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-0">Algorithm State</label>
-                <button onClick={() => setIsRightSidebarOpen(false)} className="p-1 -mr-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" title="Close Panel">
+                <button onClick={() => setIsRightSidebarOpen(false)} className="p-1 -mr-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden xl:block" title="Close Panel">
                   <PanelRightClose className="w-4 h-4" />
                 </button>
               </div>
@@ -757,7 +860,7 @@ export default function App() {
             {algo === AlgorithmType.FLOYD_WARSHALL ? (
               <section>
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Distance Matrix</label>
-                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-hidden">
+                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-x-auto overflow-y-hidden">
                   <table className="w-full text-center text-[10px] min-w-max">
                     <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 border-b border-zinc-200/50 dark:border-zinc-800/50">
                       <tr className="text-zinc-500 dark:text-zinc-400">
@@ -823,7 +926,7 @@ export default function App() {
             ) : (
               <section>
                 <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Distance Table</label>
-                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-hidden">
+                <div className="border border-zinc-200/50 dark:border-zinc-800/50 rounded overflow-x-auto overflow-y-hidden">
                   <table className="w-full text-left text-[10px]">
                     <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 border-b border-zinc-200/50 dark:border-zinc-800/50">
                       <tr className="text-zinc-500 dark:text-zinc-400">
@@ -922,7 +1025,7 @@ export default function App() {
       </div>
 
       {/* BOTTOM: EXECUTION TRACE */}
-      <footer className="h-32 border-t border-zinc-200/50 dark:border-zinc-800/50 surface-panel flex flex-col shrink-0">
+      <footer className="h-[400px] xl:h-32 border-t border-zinc-200/50 dark:border-zinc-800/50 surface-panel flex flex-col shrink-0">
         <div className="h-8 border-b border-zinc-200/30 dark:border-zinc-800/30/50 flex items-center px-4 justify-between bg-black/5 dark:bg-white/5/50">
           <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Execution Trace Log</span>
         </div>
@@ -933,12 +1036,12 @@ export default function App() {
             </div>
           ) : (
             steps.slice(0, currentStepIndex + 1).map((step, idx) => (
-              <div key={idx} className="flex items-center gap-4 px-2 py-1 bg-transparent transition-colors border border-zinc-200/30 dark:border-zinc-800/30/50 rounded text-zinc-600 dark:text-zinc-400 shadow-sm animate-in fade-in group relative">
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 px-2 py-2 sm:py-1 bg-transparent transition-colors border border-zinc-200/30 dark:border-zinc-800/30/50 rounded text-zinc-600 dark:text-zinc-400 shadow-sm animate-in fade-in group relative">
                 <span className="text-zinc-400 dark:text-zinc-500 font-bold shrink-0 w-16">STEP {String(step.stepNumber).padStart(2, '0')}</span>
                 <span className="text-indigo-500 shrink-0 w-32 truncate">{step.operationType}</span>
                 <span className="text-zinc-900 dark:text-zinc-100 flex-1">{step.explanationText}</span>
                 {idx === currentStepIndex && (
-                  <button onClick={() => askTutor('Explain this step')} className="opacity-0 group-hover:opacity-100 absolute right-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all flex items-center gap-1">
+                  <button onClick={() => askTutor('Explain this step')} className="opacity-100 sm:opacity-0 group-hover:opacity-100 mt-2 sm:mt-0 sm:absolute sm:right-2 w-max self-start sm:self-auto bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all flex items-center gap-1">
                     <Bot className="w-3 h-3" /> Explain
                   </button>
                 )}

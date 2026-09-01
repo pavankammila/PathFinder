@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { Node, Edge } from '../types';
 import { Focus } from 'lucide-react';
@@ -18,6 +18,7 @@ interface GraphCanvasProps {
   distances?: Record<string, number>;
   theme?: "light" | "dark";
   readonly?: boolean;
+  allowDoubleClickMove?: boolean;
   onNodeClick: (nodeId: string) => void;
   onNodeDoubleClick?: (nodeId: string) => void;
   onEdgeClick: (edgeId: string) => void;
@@ -28,18 +29,48 @@ interface GraphCanvasProps {
 export function GraphCanvas({
   nodes, edges, mode, sourceNodeId, destNodeId, connectStartNodeId,
   activeNodeId, activeEdgeId, visitedNodeIds, pathNodeIds, pathEdgeIds,
-  distances, readonly, theme = "light",
+  distances, readonly, theme = "light", allowDoubleClickMove = false,
   onNodeClick, onNodeDoubleClick, onEdgeClick, onCanvasClick, onNodeMove
 }: GraphCanvasProps) {
+  const [movableNodeId, setMovableNodeId] = useState<string | null>(null);
+  useEffect(() => { if (mode !== 'DEFAULT' || readonly || !allowDoubleClickMove) setMovableNodeId(null); }, [mode, readonly, allowDoubleClickMove]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!movableNodeId || readonly) return;
+      const step = e.shiftKey ? 20 : 5;
+      let dx = 0; let dy = 0;
+      if (e.key === 'ArrowUp') dy = -step;
+      else if (e.key === 'ArrowDown') dy = step;
+      else if (e.key === 'ArrowLeft') dx = -step;
+      else if (e.key === 'ArrowRight') dx = step;
+      
+      if (dx !== 0 || dy !== 0) {
+        e.preventDefault();
+        const node = nodesRef.current.find(n => n.id === movableNodeId);
+        if (node) {
+          callbacks.current.onNodeMove(movableNodeId, node.x + dx, node.y + dy);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [movableNodeId]);
+
+
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomBehavior = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const callbacks = useRef({ onNodeClick, onNodeDoubleClick, onEdgeClick, onCanvasClick, onNodeMove });
   const nodesRef = useRef(nodes);
+  const modeRef = useRef(mode);
+  const allowDoubleClickMoveRef = useRef(allowDoubleClickMove);
 
   useEffect(() => {
     callbacks.current = { onNodeClick, onNodeDoubleClick, onEdgeClick, onCanvasClick, onNodeMove };
     nodesRef.current = nodes;
-  }, [onNodeClick, onNodeDoubleClick, onEdgeClick, onCanvasClick, onNodeMove, nodes]);
+    modeRef.current = mode;
+    allowDoubleClickMoveRef.current = allowDoubleClickMove;
+  }, [onNodeClick, allowDoubleClickMove, , onNodeDoubleClick, onEdgeClick, onCanvasClick, onNodeMove, nodes]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -80,6 +111,7 @@ export function GraphCanvas({
           if (event.defaultPrevented) return;
           const layerNode = svg.select('.graph-layer').node() as SVGGElement;
           const [x, y] = d3.pointer(event, layerNode);
+          setMovableNodeId(null);
           callbacks.current.onCanvasClick(x, y);
         });
 
@@ -192,7 +224,7 @@ export function GraphCanvas({
       .on('mouseover', function() {
         if (mode === 'DELETE') {
           d3.select(this).attr('stroke', '#ef4444').attr('stroke-width', 3);
-        } else if (mode === 'DEFAULT') {
+        } else if (modeRef.current === 'DEFAULT' && !readonly && allowDoubleClickMoveRef.current) {
           d3.select(this).attr('stroke', (theme === 'dark' ? '#818cf8' : '#4f46e5')).attr('stroke-width', 3);
         }
       })
@@ -232,13 +264,16 @@ export function GraphCanvas({
     const nodesEnter = nodesSelection.enter()
       .append('g')
       .attr('class', 'node-group')
-      .on('click', function(event, d) {
+            .on('click', function(event, d) {
         if (event.defaultPrevented) return;
         event.stopPropagation();
         const now = Date.now();
         // @ts-ignore
         const lastClick = this.__lastClick || 0;
-        if (now - lastClick < 400) { // Increased to 400ms for easier tapping
+        if (now - lastClick < 400) {
+          if (modeRef.current === 'DEFAULT' && !readonly && allowDoubleClickMoveRef.current) {
+            setMovableNodeId(prev => prev === d.id ? null : d.id);
+          }
           if (callbacks.current.onNodeDoubleClick) {
             callbacks.current.onNodeDoubleClick(d.id);
           }
@@ -256,8 +291,8 @@ export function GraphCanvas({
     nodesEnter.append('text').attr('class', 'node-distance');
 
     const drag = d3.drag<SVGGElement, Node>()
-      .filter(() => mode === 'DEFAULT')
-      .on('start', function(event) { d3.select(this).raise(); })
+      .filter((event, d) => mode === 'DEFAULT' && movableNodeId === d.id)
+      .on('start', function(event) { d3.select(this).raise(); d3.select(this).select('.node-bg').style('cursor', 'grabbing'); })
       .on('drag', function(event, d) {
         const newX = event.x;
         const newY = event.y;
@@ -290,12 +325,14 @@ export function GraphCanvas({
           });
       })
       .on('end', function(event, d) {
+        d3.select(this).select('.node-bg').style('cursor', 'grab');
         callbacks.current.onNodeMove(d.id, event.x, event.y);
       });
 
-    nodesEnter.call(drag);
+    
 
     const nodesMerge = nodesEnter.merge(nodesSelection);
+    nodesMerge.call(drag);
     nodesMerge.attr('transform', d => `translate(${d.x},${d.y})`);
     
     nodesMerge.select('.node-bg')
@@ -312,6 +349,7 @@ export function GraphCanvas({
          else if (d.id === destNodeId) { fill = theme === 'dark' ? '#881337' : '#ffe4e6'; stroke = theme === 'dark' ? '#fb7185' : '#f43f5e'; strokeWidth = 3; }
          else if (visitedNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#082f49' : '#f0f9ff'; stroke = theme === 'dark' ? '#0369a1' : '#bae6fd'; strokeWidth = 2; }
          else if (d.id === connectStartNodeId) { fill = theme === 'dark' ? '#0c4a6e' : '#e0f2fe'; stroke = (theme === 'dark' ? '#38bdf8' : '#0284c7'); strokeWidth = 3; }
+         else if (movableNodeId === d.id) { stroke = theme === 'dark' ? '#a855f7' : '#9333ea'; strokeWidth = 3; }
          
          const curDist = distances ? distances[d.id] : undefined;
          // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -351,7 +389,7 @@ export function GraphCanvas({
       });
       
     nodesMerge.select('.node-bg')
-      .style('cursor', mode === 'ADD_NODE' ? 'default' : 'pointer')
+      .style('cursor', d => movableNodeId === d.id ? 'grab' : (mode === 'ADD_NODE' ? 'default' : 'pointer'))
       .on('mouseover', function() {
         if (mode !== 'ADD_NODE') d3.select(this).attr('stroke-width', 3);
         if (mode === 'DELETE') d3.select(this).attr('stroke', '#ef4444');
@@ -422,7 +460,7 @@ export function GraphCanvas({
 
     nodesSelection.exit().remove();
 
-  }, [nodes, edges, mode, sourceNodeId, destNodeId, connectStartNodeId, activeNodeId, activeEdgeId, visitedNodeIds, pathNodeIds, pathEdgeIds, distances, readonly, theme = "light"]);
+  }, [nodes, edges, mode, movableNodeId, sourceNodeId, destNodeId, connectStartNodeId, activeNodeId, activeEdgeId, visitedNodeIds, pathNodeIds, pathEdgeIds, distances, readonly, theme = "light"]);
 
   const handleCenter = () => {
     if (!svgRef.current || !zoomBehavior.current) return;
@@ -432,7 +470,7 @@ export function GraphCanvas({
 
   return (
     <div className="w-full h-full relative">
-      <svg ref={svgRef} className="w-full h-full outline-none" tabIndex={0} />
+      <svg ref={svgRef} className="w-full h-full outline-none touch-none" tabIndex={0} />
       <button 
         onClick={handleCenter}
         className="absolute bottom-6 right-6 p-2 surface-floating rounded-full text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none z-20"
