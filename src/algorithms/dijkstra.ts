@@ -1,4 +1,5 @@
 import { Graph, AlgorithmStep, OperationType, Edge } from '../types';
+import { MinPriorityQueue } from './PriorityQueue';
 
 export interface DijkstraResult {
   shortestPath: string[] | null;
@@ -88,30 +89,19 @@ export function runDijkstra(graph: Graph, sourceId: string, destId: string | nul
     `Initialize source distance to 0.`
   );
 
-  while (visited.size < graph.nodes.length) {
-    const unvisitedNodes = graph.nodes.filter(n => !visited.has(n.id));
-    unvisitedNodes.sort((a, b) => {
-      const distA = distances[a.id];
-      const distB = distances[b.id];
-      
-      if (distA !== distB) {
-        return distA < distB ? -1 : 1;
-      }
-      return a.id.localeCompare(b.id);
-    });
+  const pq = new MinPriorityQueue<string>();
+  pq.enqueue(sourceId, 0);
 
-    let minDist = Infinity;
-    let u: string | null = null;
+  while (!pq.isEmpty()) {
+    const minNode = pq.dequeue();
+    if (!minNode) break;
 
-    if (unvisitedNodes.length > 0 && distances[unvisitedNodes[0].id] !== Infinity) {
-      u = unvisitedNodes[0].id;
-      minDist = distances[u];
-    }
+    const u = minNode.element;
+    const minDist = minNode.priority;
 
-    if (u === null) {
-      // Remaining nodes are unreachable.
-      break;
-    }
+    if (visited.has(u)) continue;
+
+    if (minDist > distances[u]) continue;
 
     pushStep(
       OperationType.SELECT_NODE, 
@@ -138,7 +128,6 @@ export function runDijkstra(graph: Graph, sourceId: string, destId: string | nul
       e.source === u || (!e.directed && e.target === u)
     );
 
-    // Keep only the shortest edge to each target to prevent duplicate edge issues.
     const edgeMap = new Map<string, Edge>();
     for (const e of outgoingEdges) {
       const targetId = e.source === u ? e.target : e.source;
@@ -151,6 +140,7 @@ export function runDijkstra(graph: Graph, sourceId: string, destId: string | nul
 
     for (const targetId of sortedTargets) {
       if (visited.has(targetId)) continue;
+
       const edge = edgeMap.get(targetId)!;
       
       edgesExplored++;
@@ -172,6 +162,8 @@ export function runDijkstra(graph: Graph, sourceId: string, destId: string | nul
         distances[targetId] = alt;
         predecessors[targetId] = u;
         
+        pq.enqueue(targetId, alt);
+
         pushStep(
           OperationType.DISTANCE_UPDATE,
           u, edge.id, targetId, prev, alt, u,

@@ -243,7 +243,7 @@ export function GraphCanvas({
       .attr('height', 16)
       .attr('rx', 2)
       .attr('fill', theme === 'dark' ? 'rgba(24, 24, 27, 0.7)' : 'rgba(255, 255, 255, 0.7)')
-      .attr('stroke', (theme === 'dark' ? '#3f3f46' : '#e4e4e7'));
+      .attr('stroke', (theme === 'dark' ? '#52525b' : '#d4d4d8'));
 
     edgesMerge.select('.edge-label')
       .attr('x', d => getMidPoint(d).x)
@@ -340,7 +340,7 @@ export function GraphCanvas({
          const el = d3.select(this);
          
          let fill = theme === 'dark' ? 'rgba(24, 24, 27, 0.7)' : 'rgba(255, 255, 255, 0.7)';
-         let stroke = theme === 'dark' ? '#3f3f46' : '#e4e4e7';
+         let stroke = theme === 'dark' ? '#52525b' : '#d4d4d8';
          let strokeWidth = 2;
 
          if (pathNodeIds?.includes(d.id)) { fill = theme === 'dark' ? '#0c4a6e' : '#e0f2fe'; stroke = (theme === 'dark' ? '#38bdf8' : '#0284c7'); strokeWidth = 3; }

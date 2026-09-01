@@ -83,6 +83,63 @@ ${JSON.stringify(context, null, 2)}`;
     }
   });
 
+
+  app.post("/api/ai/vision", async (req, res) => {
+    try {
+      const { image, mimeType } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({ error: "Gemini API key is missing. Please add it in Settings > Secrets." });
+      }
+      
+      const ai = new GoogleGenAI({ 
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+      
+      const systemInstruction = `You are an expert graph theory vision model. 
+Analyze the image of a graph sketch and return ONLY a valid JSON object representing the graph.
+Nodes should have an 'id' (string), 'label' (string), 'x' (number 100-700), and 'y' (number 100-500).
+Edges should have 'source' (string, node id), 'target' (string, node id), 'weight' (number), and 'directed' (boolean).
+Return strictly the JSON object: { "nodes": [], "edges": [] }`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inlineData: {
+                  data: image,
+                  mimeType: mimeType || "image/jpeg"
+                }
+              },
+              {
+                text: "Extract the graph structure from this image. Return ONLY a valid JSON object."
+              }
+            ]
+          }
+        ],
+        config: {
+          systemInstruction,
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      });
+      
+      res.json({ text: response.text });
+    } catch (error) {
+      console.error("AI Vision Error:", error);
+      let errorMsg = error.message;
+      res.status(500).json({ error: errorMsg });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -46,6 +46,20 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
 
   const getLabel = (id: string) => nodesMap.get(id)?.label || id;
 
+  let currentDistSnapshot: Record<string, Record<string, number>> | null = null;
+  let currentNextSnapshot: Record<string, Record<string, string | null>> | null = null;
+
+  const takeSnapshot = () => {
+    const distSnap: Record<string, Record<string, number>> = {};
+    const nextSnap: Record<string, Record<string, string | null>> = {};
+    for (const src of Object.keys(distanceMatrix)) {
+      distSnap[src] = { ...distanceMatrix[src] };
+      nextSnap[src] = { ...nextMatrix[src] };
+    }
+    currentDistSnapshot = distSnap;
+    currentNextSnapshot = nextSnap;
+  };
+
   const pushStep = (
     op: OperationType,
     msg: string,
@@ -55,8 +69,12 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
     prevDist: number | null = null,
     newDist: number | null = null,
     pred: string | null = null,
+    matrixUpdated = false
   ) => {
-    // For visualization purposes, if sourceId is provided, extract its row. Otherwise empty.
+    if (matrixUpdated || !currentDistSnapshot) {
+      takeSnapshot();
+    }
+
     const distanceSnapshot: Record<string, number> = {};
     const predecessorSnapshot: Record<string, string | null> = {};
     
@@ -65,14 +83,6 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
         distanceSnapshot[targetId] = distanceMatrix[sourceId][targetId];
         predecessorSnapshot[targetId] = nextMatrix[sourceId][targetId];
       }
-    }
-
-    // Clone the full matrices
-    const distanceMatrixSnapshot: Record<string, Record<string, number>> = {};
-    const nextMatrixSnapshot: Record<string, Record<string, string | null>> = {};
-    for (const src of Object.keys(distanceMatrix)) {
-      distanceMatrixSnapshot[src] = { ...distanceMatrix[src] };
-      nextMatrixSnapshot[src] = { ...nextMatrix[src] };
     }
 
     steps.push({
@@ -87,8 +97,8 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
       visitedNodes: [],
       distanceSnapshot,
       predecessorSnapshot,
-      distanceMatrixSnapshot,
-      nextMatrixSnapshot,
+      distanceMatrixSnapshot: currentDistSnapshot!,
+      nextMatrixSnapshot: currentNextSnapshot!,
       explanationText: msg
     });
   };
@@ -128,9 +138,12 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
     nextMatrix[e.source][e.target] = e.target;
   }
 
+  takeSnapshot();
   pushStep(
     OperationType.INITIALIZE_MATRIX,
-    `Initialize distance and next matrices.`
+    `Initialize distance and next matrices.`,
+    null, null, null, null, null, null,
+    true
   );
 
   const nodeIds = graph.nodes.map(n => n.id).sort((a, b) => a.localeCompare(b));
@@ -142,6 +155,7 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
       `Select intermediate vertex ${getLabel(k)}.`,
       k
     );
+
     for (const i of nodeIds) {
       for (const j of nodeIds) {
         const currentDist = distanceMatrix[i][j];
@@ -162,7 +176,8 @@ export function runFloydWarshall(graph: Graph, sourceId: string | null, destId: 
           pushStep(
             OperationType.UPDATE_DISTANCE,
             `Using ${getLabel(k)} as an intermediate vertex, the path ${getLabel(i)} → ${getLabel(k)} → ${getLabel(j)} is shorter than the current ${getLabel(i)} → ${getLabel(j)} distance.`,
-            k, null, j, currentDist, pathThroughK, i
+            k, null, j, currentDist, pathThroughK, i,
+            true
           );
         } else {
           pushStep(

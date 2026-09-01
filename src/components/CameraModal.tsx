@@ -9,10 +9,10 @@ export interface CameraModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (graph: Graph) => void;
-  hasExistingGraph: boolean;
+  existingGraph: Graph;
 }
 
-export function CameraModal({ isOpen, onClose, onImport, hasExistingGraph }: CameraModalProps) {
+export function CameraModal({ isOpen, onClose, onImport, existingGraph }: CameraModalProps) {
   const [mode, setMode] = useState<'CAMERA' | 'UPLOAD'>('UPLOAD');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -60,7 +60,7 @@ export function CameraModal({ isOpen, onClose, onImport, hasExistingGraph }: Cam
           <ReviewScreen 
             initialGraph={recognitionResult.graph} 
             imageUrl={imageUrl} 
-            hasExistingGraph={hasExistingGraph}
+            existingGraph={existingGraph}
             onImport={(g) => { onImport(g); onClose(); }} 
             onCancel={onClose} 
           />

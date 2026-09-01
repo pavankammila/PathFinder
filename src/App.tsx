@@ -369,7 +369,7 @@ export default function App() {
       setNodes(prev => [...prev, { id: `n_${Date.now()}`, label, x, y }]);
       clearExecutionState();
     }
-  }, [mode, nodes, clearExecutionState]);
+  }, [mode, nodes, edges, clearExecutionState, saveHistory]);
 
 
   const handleNodeClick = useCallback((nodeId: string) => {
@@ -417,7 +417,7 @@ export default function App() {
       default:
         break;
     }
-  }, [mode, connectStartNodeId, edges, sourceNodeId, destNodeId, showError, clearExecutionState]);
+  }, [mode, connectStartNodeId, nodes, edges, sourceNodeId, destNodeId, showError, clearExecutionState, saveHistory]);
 
   const handleEdgeClick = useCallback((edgeId: string) => {
     if (mode === EditorMode.DELETE) {
@@ -427,14 +427,14 @@ export default function App() {
     } else if (mode === EditorMode.DEFAULT) {
       setEditingEdgeId(edgeId);
     }
-  }, [mode, clearExecutionState]);
+  }, [mode, nodes, edges, clearExecutionState, saveHistory]);
 
   const handleNodeMove = useCallback((nodeId: string, x: number, y: number) => {
     saveHistory(nodes, edges);
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, x, y } : n));
-  }, []);
+  }, [nodes, edges, saveHistory]);
 
-  const handleCreateEdge = (weight: number) => {
+  const handleCreateEdge = useCallback((weight: number) => {
     if (!pendingEdge) return;
     const newEdge: Edge = {
       id: `e_${Date.now()}`,
@@ -447,15 +447,15 @@ export default function App() {
     setPendingEdge(null);
     setConnectStartNodeId(null);
     clearExecutionState();
-  };
+  }, [nodes, edges, pendingEdge, clearExecutionState, saveHistory]);
 
-  const handleEditEdge = (weight: number) => {
+  const handleEditEdge = useCallback((weight: number) => {
     if (!editingEdgeId) return;
     saveHistory(nodes, edges);
     setEdges(prev => prev.map(e => e.id === editingEdgeId ? { ...e, weight } : e));
     setEditingEdgeId(null);
     clearExecutionState();
-  };
+  }, [nodes, edges, editingEdgeId, clearExecutionState, saveHistory]);
 
   const handleReset = () => {
     setMode(EditorMode.DEFAULT);
@@ -1077,12 +1077,12 @@ export default function App() {
       <CameraModal 
         isOpen={isCameraModalOpen} 
         onClose={() => setIsCameraModalOpen(false)}
-        hasExistingGraph={nodes.length > 0}
+        existingGraph={{ nodes, edges }}
         onImport={(importedGraph) => {
-          handleReset();
           saveHistory(nodes, edges);
           setNodes(importedGraph.nodes);
           setEdges(importedGraph.edges);
+          clearExecutionState();
           setIsCameraModalOpen(false);
         }}
       />
