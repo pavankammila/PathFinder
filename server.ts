@@ -63,14 +63,19 @@ async function executeWithRetry(ai, request) {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 10000;
   
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   // AI endpoint
   app.post("/api/ai/chat", async (req, res) => {
     try {
       const { messages, context } = req.body;
+      
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Invalid request: messages array is required." });
+      }
+
       
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
@@ -166,6 +171,11 @@ ${JSON.stringify(context, null, 2)}`;
   app.post("/api/ai/vision", async (req, res) => {
     try {
       const { image, mimeType } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ error: "Invalid request: image data is required." });
+      }
+
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         return res.status(400).json({ error: "Gemini API key is missing. Please add it in Settings > Secrets." });
@@ -233,7 +243,7 @@ Return strictly the JSON object: { "nodes": [], "edges": [] }`;
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = __dirname;
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
