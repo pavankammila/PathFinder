@@ -1,21 +1,42 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Loader2, Minimize2, Maximize2, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface AITutorPanelProps {
   isOpen: boolean;
+  currentAlgorithm: string;
   onClose: () => void;
   buildContext: () => any;
   externalQuery?: string;
   onExternalQueryHandled?: () => void;
 }
 
-export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onExternalQueryHandled }: AITutorPanelProps) {
+export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onExternalQueryHandled, currentAlgorithm }: AITutorPanelProps) {
   const [messages, setMessages] = useState<{role: 'user'|'model', content: string}[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const getQuickActions = (algo: string) => {
+    switch (algo) {
+      case 'BFS': return ["Explain BFS", "Why is this path shortest?", "Compare BFS with Dijkstra"];
+      case 'DIJKSTRA': return ["Explain this execution", "Why was this node selected?", "Why can't Dijkstra use negative weights?"];
+      case 'BELLMAN_FORD': return ["Explain the relaxation", "Check for a negative cycle", "Compare Bellman-Ford with Dijkstra"];
+      case 'FLOYD_WARSHALL': return ["Explain the matrix", "Why did this distance change?", "Explain the current intermediate vertex"];
+      case 'DAG_SHORTEST_PATH': return ["Explain the topological order", "Why must the graph be acyclic?"];
+      case 'A_STAR': return ["Explain the heuristic", "Why did A* choose this node?", "Compare A* with Dijkstra"];
+      case 'JOHNSON': return ["Explain reweighting", "Why does Johnson's use Bellman-Ford?"];
+      case 'BIDIRECTIONAL': return ["Explain the two searches", "Where did the searches meet?"];
+      case 'DIAL': return ["Explain the buckets", "Why must weights be integers?"];
+      case 'SPFA': return ["Explain the queue", "Why was this node re-added?", "Check for a negative cycle"];
+      default: return ["Explain this algorithm", "Why was this node selected?"];
+    }
+  };
+
+  const quickActions = getQuickActions(currentAlgorithm);
+
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -118,8 +139,9 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
             <div className="text-xs text-zinc-500">
               <p className="mb-2 font-medium">Ask about the current algorithm...</p>
               <div className="flex flex-wrap justify-center gap-2 mt-4">
-                <button onClick={() => handleSend("Explain this step")} className="bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain this step</button>
-                <button onClick={() => handleSend("Explain Dijkstra")} className="bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">Explain Dijkstra</button>
+                {quickActions.map(action => (
+                  <button key={action} onClick={() => handleSend(action)} className="bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-left">{action}</button>
+                ))}
               </div>
             </div>
           </div>
@@ -129,8 +151,8 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-black/5 dark:bg-white/5 text-zinc-800 dark:text-zinc-200'}`}>
               {msg.role === 'model' ? (
-                <div className="font-sans [&>p]:mb-2 [&>p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ul:last-child]:mb-0 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_ol:last-child]:mb-0 [&_li]:mb-1 [&_code]:bg-black/5 [&_code]:dark:bg-white/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[12px] [&_pre]:bg-black/5 [&_pre]:dark:bg-white/10 [&_pre]:p-2 [&_pre]:rounded [&_pre_code]:bg-transparent [&_pre_code]:p-0">
-                  <Markdown>{msg.content}</Markdown>
+                <div className="w-full overflow-x-auto font-sans [&>p]:mb-2 [&_table]:w-full [&_table]:mb-2 [&_th]:border [&_th]:border-zinc-300 dark:[&_th]:border-zinc-700 [&_th]:px-2 [&_th]:py-1 [&_th]:bg-zinc-100 dark:[&_th]:bg-zinc-800 [&_td]:border [&_td]:border-zinc-300 dark:[&_td]:border-zinc-700 [&_td]:px-2 [&_td]:py-1 [&>p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ul:last-child]:mb-0 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_ol:last-child]:mb-0 [&_li]:mb-1 [&_code]:bg-black/5 [&_code]:dark:bg-white/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[12px] [&_pre]:overflow-x-auto [&_pre]:bg-black/5 [&_pre]:dark:bg-white/10 [&_pre]:p-2 [&_pre]:rounded [&_pre_code]:bg-transparent [&_pre_code]:p-0">
+                  <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                 </div>
               ) : (
                 <div className="whitespace-pre-wrap font-sans">{msg.content}</div>

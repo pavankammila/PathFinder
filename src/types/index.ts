@@ -18,6 +18,31 @@ export interface Graph {
   edges: Edge[];
 }
 
+export enum AlgorithmType {
+  BFS = 'BFS',
+  DIJKSTRA = 'DIJKSTRA',
+  BELLMAN_FORD = 'BELLMAN_FORD',
+  FLOYD_WARSHALL = 'FLOYD_WARSHALL',
+  DAG_SHORTEST_PATH = 'DAG_SHORTEST_PATH',
+  A_STAR = 'A_STAR',
+  JOHNSON = 'JOHNSON',
+  BIDIRECTIONAL = 'BIDIRECTIONAL',
+  DIAL = 'DIAL',
+  SPFA = 'SPFA'
+}
+
+export interface AlgorithmResult {
+  shortestPath: string[] | null;
+  totalCost: number;
+  nodesVisited: number;
+  edgesExplored: number;
+  distances?: Record<string, number>;
+  predecessors?: Record<string, string | null>;
+  steps: AlgorithmStep[];
+  error?: string;
+  negativeCycle?: boolean;
+}
+
 export enum Algorithm {
   DIJKSTRA = 'DIJKSTRA',
   A_STAR = 'A_STAR',
@@ -47,6 +72,13 @@ export enum OperationType {
   COMPARE_PATH = 'COMPARE_PATH',
   UPDATE_DISTANCE = 'UPDATE_DISTANCE',
   NO_UPDATE = 'NO_UPDATE',
+  HEURISTIC_UPDATE = 'HEURISTIC_UPDATE',
+  MEETING_FOUND = 'MEETING_FOUND',
+  TOPOLOGICAL_SORT = 'TOPOLOGICAL_SORT',
+  PROCESS_VERTEX = 'PROCESS_VERTEX',
+  BUCKET_PROCESS = 'BUCKET_PROCESS',
+  PHASE_START = 'PHASE_START',
+  EDGE_REWEIGHT = 'EDGE_REWEIGHT',
 }
 
 export interface AlgorithmStep {

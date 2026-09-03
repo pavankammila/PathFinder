@@ -2,13 +2,18 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Play, Pause, SkipForward, RotateCcw, Plus, Link2, Trash2,
   MapPin, Flag, Camera, Settings2, Map, Moon, Sun, Eraser, Bot, PanelLeftClose, PanelRightClose, PanelLeftOpen, PanelRightOpen, Undo2, Redo2,
-  ChevronDown, Check, Share2
+  ChevronDown, Check, Share2, Sparkles
 } from 'lucide-react';
-import { Node, Edge, AlgorithmStep, OperationType } from './types';
+import { Node, Edge, AlgorithmStep, OperationType, AlgorithmType } from './types';
 import { GraphCanvas } from './components/GraphCanvas';
 import { EdgeWeightPopover } from './components/EdgeWeightPopover';
 import { getNextNodeLabel } from './utils/graphUtils';
-import { runDijkstra, runFloydWarshall, algorithmMetadata } from './algorithms';
+
+import { AlgorithmMetadata, algorithmMetadata } from './algorithms/metadata';
+import { validateAlgorithmRequirements } from './algorithms/validation';
+import * as algos from './algorithms';
+import { CompareAlgorithmsModal } from './components/CompareAlgorithmsModal';
+
 import { PRESETS } from './utils/presets';
 import { CameraModal } from './components/CameraModal';
 import { AITutorPanel } from './components/AITutorPanel';
@@ -29,11 +34,6 @@ export enum ExecutionState {
   PAUSED = 'PAUSED',
   COMPLETED = 'COMPLETED',
   ERROR = 'ERROR'
-}
-
-export enum AlgorithmType {
-  DIJKSTRA = 'DIJKSTRA',
-  FLOYD_WARSHALL = 'FLOYD_WARSHALL'
 }
 
 export default function App() {
@@ -73,6 +73,8 @@ export default function App() {
   
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isTutorOpen, setIsTutorOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [comparisonResults, setComparisonResults] = useState<any[]>([]);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
@@ -201,19 +203,26 @@ export default function App() {
       return false;
     }
     
-    if (algo === AlgorithmType.DIJKSTRA) {
-      const hasNegativeWeight = edges.some(e => e.weight < 0);
-      if (hasNegativeWeight) {
-        showError("DIJKSTRA CANNOT RUN: Dijkstra's algorithm requires non-negative edge weights.");
-        return false;
-      }
-    }
     
+    const validation = validateAlgorithmRequirements({nodes, edges}, algo, sourceNodeId, destNodeId);
+    if (!validation.valid) {
+      showError(`CANNOT RUN ${algorithmMetadata[algo].name}: ${validation.message}`);
+      return false;
+    }
+
     let res;
-    if (algo === AlgorithmType.DIJKSTRA) {
-      res = runDijkstra({ nodes, edges }, sourceNodeId, destNodeId);
-    } else {
-      res = runFloydWarshall({ nodes, edges }, sourceNodeId, destNodeId);
+    switch (algo) {
+      case AlgorithmType.BFS: res = algos.runBFS({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.DIJKSTRA: res = algos.runDijkstra({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.BELLMAN_FORD: res = algos.runBellmanFord({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.FLOYD_WARSHALL: res = algos.runFloydWarshall({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.DAG_SHORTEST_PATH: res = algos.runDAGShortestPath({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.A_STAR: res = algos.runAStar({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.JOHNSON: res = algos.runJohnson({ nodes, edges }); break;
+      case AlgorithmType.BIDIRECTIONAL: res = algos.runBidirectional({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.DIAL: res = algos.runDial({ nodes, edges }, sourceNodeId, destNodeId); break;
+      case AlgorithmType.SPFA: res = algos.runSPFA({ nodes, edges }, sourceNodeId, destNodeId); break;
+      default: res = algos.runDijkstra({ nodes, edges }, sourceNodeId, destNodeId);
     }
 
     if (res.error) {
@@ -548,6 +557,13 @@ export default function App() {
 
         <div className="flex items-center gap-3">
           <button 
+            onClick={() => setIsCompareModalOpen(true)}
+            className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
+          >
+            <Play className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">COMPARE ALGOS</span>
+          </button>
+          <button 
             onClick={handleShareGraph}
             title="Share Graph"
             className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
@@ -608,17 +624,20 @@ export default function App() {
 
             <section>
               <label className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter block mb-3">Algorithm</label>
-              <div className="space-y-1">
-                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.DIJKSTRA ? 'bg-black/5 dark:bg-white/5 border-zinc-200/50 dark:border-zinc-800/50' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
-                  <input type="radio" name="algo" checked={algo === AlgorithmType.DIJKSTRA} onChange={() => setAlgo(AlgorithmType.DIJKSTRA)} disabled={isExecutionActive} className="sr-only" />
-                  <div className={`w-1.5 h-1.5 rounded-full ${algo === AlgorithmType.DIJKSTRA ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-transparent border border-zinc-300'}`}></div>
-                  <span className={`text-[11px] font-medium ${algo === AlgorithmType.DIJKSTRA ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>Dijkstra</span>
-                </label>
-                <label className={`flex items-center gap-2 px-3 py-2 rounded border cursor-pointer focus-within:ring-2 focus-within:ring-zinc-900 transition-colors ${algo === AlgorithmType.FLOYD_WARSHALL ? 'bg-black/5 dark:bg-white/5 border-zinc-200/50 dark:border-zinc-800/50' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:bg-zinc-800 border-transparent'}`}>
-                  <input type="radio" name="algo" checked={algo === AlgorithmType.FLOYD_WARSHALL} onChange={() => setAlgo(AlgorithmType.FLOYD_WARSHALL)} disabled={isExecutionActive} className="sr-only" />
-                  <div className={`w-1.5 h-1.5 rounded-full ${algo === AlgorithmType.FLOYD_WARSHALL ? 'bg-zinc-900 dark:bg-zinc-100' : 'bg-transparent border border-zinc-300'}`}></div>
-                  <span className={`text-[11px] font-medium ${algo === AlgorithmType.FLOYD_WARSHALL ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>Floyd-Warshall</span>
-                </label>
+              <div className="relative">
+                <select 
+                  value={algo}
+                  onChange={(e) => setAlgo(e.target.value as AlgorithmType)}
+                  disabled={isExecutionActive}
+                  className="w-full appearance-none bg-black/5 dark:bg-white/5 border border-zinc-200/50 dark:border-zinc-800/50 rounded px-3 py-2 text-[11px] font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                >
+                  {Object.values(AlgorithmType).map(a => (
+                    <option key={a} value={a} className="bg-white dark:bg-zinc-900">{algorithmMetadata[a].name}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
               </div>
             </section>
 
@@ -786,10 +805,6 @@ export default function App() {
             )}
             
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 surface-floating rounded-full px-4 py-2 z-20">
-              <button onClick={() => setIsTutorOpen(!isTutorOpen)} className={`p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none transition-colors flex items-center gap-1.5 pl-2 ${isTutorOpen ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`} title="PATHFINDER AI">
-                <Bot className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-bold tracking-widest uppercase leading-none mr-1">AI</span>
-              </button>
               <button 
                 onClick={toggleTheme}
                 className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none transition-colors" 
@@ -799,6 +814,18 @@ export default function App() {
                 {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
               </button>
             </div>
+
+            {/* PATHFINDER AI PREMIUM BUTTON */}
+            <button
+              onClick={() => setIsTutorOpen(!isTutorOpen)}
+              className="absolute bottom-6 left-4 sm:left-6 z-30 flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-900 focus-visible:outline-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+              title="Open PathFinder AI"
+              aria-label="Open PathFinder AI"
+            >
+              <Sparkles className="w-5 h-5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline-block md:hidden text-xs font-bold tracking-widest uppercase">AI</span>
+              <span className="hidden md:inline-block text-xs font-bold tracking-widest uppercase">PathFinder AI</span>
+            </button>
           </div>
         </main>
 
@@ -1090,8 +1117,15 @@ export default function App() {
           setIsCameraModalOpen(false);
         }}
       />
-      <AITutorPanel
-        isOpen={isTutorOpen}
+      
+      <CompareAlgorithmsModal 
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        graph={{ nodes, edges }}
+        sourceId={sourceNodeId}
+        destId={destNodeId}
+      />
+      <AITutorPanel currentAlgorithm={algo} isOpen={isTutorOpen}
         onClose={() => setIsTutorOpen(false)}
         buildContext={buildTutorContext}
         externalQuery={tutorQuery}
