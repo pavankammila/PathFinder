@@ -172,8 +172,6 @@ export function CameraModal({ isOpen, onClose, onImport, existingGraph }: Camera
     return () => window.removeEventListener('paste', handlePaste);
   }, [isOpen, stopCamera]);
 
-  if (!isOpen) return null;
-
   // Capture snapshot from video element
   const handleCapture = () => {
     if (!videoRef.current) return;
@@ -387,6 +385,8 @@ export function CameraModal({ isOpen, onClose, onImport, existingGraph }: Camera
     setAnalysisElapsed(0);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   // If recognition succeeded, transition to the review screen
   if (recognitionResult?.status === 'SUCCESS' && recognitionResult.graph && imageUrl) {
