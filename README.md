@@ -297,7 +297,7 @@ Algorithms currently supported include:
 | DAG Shortest Path | DAG | Yes | Shortest path in DAGs |
 | A* | Weighted | Generally no | Goal-directed shortest path |
 | Johnson's | Weighted | Yes* | All-pairs shortest path |
-| Bidirectional Search | Graph | Depends on implementation | Faster goal-directed search |
+| Bidirectional Search | Graph | Depends on implementation | Goal-directed search |
 | Dial's Algorithm | Weighted | No | Integer-weight shortest paths |
 | SPFA | Weighted | Yes | Queue-based shortest path |
 
@@ -547,3 +547,145 @@ PATHFINDER
     ├── Graph Presets
     ├── Camera
     └── PATHFINDER AI
+```
+
+---
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR-GITHUB-REPOSITORY-URL>
+cd pathfinder
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Start the development server
+
+```bash
+npm run dev
+```
+
+### 4. Open the application
+
+Open the local development URL shown by your terminal.
+
+---
+
+## Academic Context
+
+This project was developed as a university-level Data Structures and Algorithms project.
+
+### Main Topic
+
+**Implementation of an Interactive Web App for Shortest Path Algorithm Graph Input with Visual Path Display**
+
+### Algorithms Covered
+
+- Breadth-First Search (BFS)
+- Dijkstra's Algorithm
+- Bellman–Ford Algorithm
+- Floyd–Warshall Algorithm
+- DAG Shortest Path
+- A* Search
+- Johnson's Algorithm
+- Bidirectional Search
+- Dial's Algorithm
+- SPFA
+
+The project focuses on connecting theoretical algorithm concepts with an interactive visual implementation.
+
+---
+
+## Example Workflow
+
+```text
+Create Nodes
+     ↓
+Connect Nodes
+     ↓
+Assign Weights
+     ↓
+Select Source
+     ↓
+Select Destination
+     ↓
+Choose Algorithm
+     ↓
+Select / Load Graph Preset
+     ↓
+Run / Step Through Algorithm
+     ↓
+Watch Graph State Change
+     ↓
+Inspect Distance / Matrix Updates
+     ↓
+Analyze Execution Trace
+     ↓
+View Shortest Path
+```
+
+---
+
+## Educational Goal
+
+PATHFINDER is designed to answer not only:
+
+> "What is the shortest path?"
+
+but also:
+
+> "How did the algorithm find it?"
+
+By providing multiple algorithms, interactive graph construction, execution controls, graph presets, and algorithm-specific visualizations, PATHFINDER helps students understand the internal behavior of graph algorithms rather than treating them as black-box solutions.
+
+The application is designed to support:
+
+- Classroom demonstrations
+- DAA laboratory work
+- Algorithm presentations
+- Self-learning
+- Algorithm comparison
+- Understanding graph-search behavior
+- Exploring algorithm edge cases
+
+---
+
+## Future Improvements
+
+Potential future improvements include:
+
+- More graph algorithms
+- Advanced graph import/export
+- Improved graph recognition from images
+- Additional visualization modes
+- Algorithm comparison tools
+- More educational examples
+- Advanced graph analytics
+- Improved AI-assisted algorithm explanations
+
+---
+
+## License
+
+This project is intended primarily as an academic and educational project.
+
+---
+
+<p align="center">
+  <img src="assets/logo-icon.png" alt="PathFinder" width="80"/>
+  <br/>
+  <strong>PATHFINDER</strong>
+  <br/>
+  <sub>Shortest Path Algorithm Laboratory</sub>
+  <br/><br/>
+  <sub>Made with ❤️ by Pavan & Team</sub>
+  <br/>
+  <sub>Built for learning • Designed for exploration • Powered by algorithms</sub>
+</p>
