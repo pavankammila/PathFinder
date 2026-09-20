@@ -102,3 +102,22 @@
 
 
 @custom-variant dark (&:is(.dark *));
+
+@keyframes scannerSweep {
+  0% {
+    top: 0%;
+    opacity: 0.7;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.7;
+  }
+}
+
+.animate-scanner {
+  animation: scannerSweep 2.2s ease-in-out infinite;
+}

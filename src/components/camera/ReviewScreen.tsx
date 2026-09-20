@@ -15,9 +15,7 @@ type ReviewNode = DetectedNode & { isNew?: boolean };
 type ReviewEdge = DetectedEdge & { isNew?: boolean };
 
 export function ReviewScreen({ initialGraph, imageUrl, existingGraph, onImport, onCancel }: ReviewScreenProps) {
-  const [importMode, setImportMode] = useState<'REPLACE' | 'MERGE'>(
-    existingGraph.nodes.length > 0 ? 'MERGE' : 'REPLACE'
-  );
+  const [importMode, setImportMode] = useState<'REPLACE' | 'MERGE'>('REPLACE');
 
   const [nodes, setNodes] = useState<ReviewNode[]>([]);
   const [edges, setEdges] = useState<ReviewEdge[]>([]);

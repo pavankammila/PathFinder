@@ -1113,8 +1113,20 @@ export default function App() {
           saveHistory(nodes, edges);
           setNodes(importedGraph.nodes);
           setEdges(importedGraph.edges);
+          if (importedGraph.nodes.length > 0) {
+            setSourceNodeId(importedGraph.nodes[0].id);
+            if (importedGraph.nodes.length > 1) {
+              setDestNodeId(importedGraph.nodes[importedGraph.nodes.length - 1].id);
+            } else {
+              setDestNodeId(null);
+            }
+          } else {
+            setSourceNodeId(null);
+            setDestNodeId(null);
+          }
           clearExecutionState();
           setIsCameraModalOpen(false);
+          showSuccess(`Imported graph with ${importedGraph.nodes.length} nodes and ${importedGraph.edges.length} edges.`);
         }}
       />
       

@@ -27,3 +27,18 @@ export interface RecognitionResult {
   graph?: DetectedGraph;
   message?: string;
 }
+
+export interface ImagePrecheckResult {
+  isValid: boolean;
+  score: number;
+  edgeDensity: number;
+  contrast: number;
+  message: string;
+  warning?: string;
+  details: {
+    hasSufficientContrast: boolean;
+    hasIdentifiableEdges: boolean;
+    hasDistinctFeatures: boolean;
+    isNotBlankOrSolid: boolean;
+  };
+}

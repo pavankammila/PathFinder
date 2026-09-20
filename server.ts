@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -20,45 +20,42 @@ function checkIsUnavailable(error) {
 }
 
 async function executeWithRetry(ai, request) {
-  let primaryModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-  let currentModel = primaryModel;
-  const FALLBACK_MODEL = "gemini-flash-latest";
-  const delays = [0, 2000, 5000, 10000];
+  const candidateModels = [
+    process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-flash-latest"
+  ];
+  // Filter out duplicates
+  const models = Array.from(new Set(candidateModels));
   
-  try {
-    request.model = currentModel;
-    return await ai.models.generateContent(request);
-  } catch (error) {
-    const isUnavailable = checkIsUnavailable(error);
-    console.log(`Initial request failed with model ${currentModel}:`, error.message);
-    if (!isUnavailable) throw error;
-  }
-  
-  for (let i = 0; i < delays.length; i++) {
-    const delay = delays[i];
-    if (delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-    
-    // Switch to fallback model after initial attempt + first retry
-    if (i >= 1 && currentModel === primaryModel) {
-      console.log(`Switching to fallback model: ${FALLBACK_MODEL}`);
-      currentModel = FALLBACK_MODEL;
-    }
-    
+  let lastError = null;
+  for (const model of models) {
     try {
-      request.model = currentModel;
+      request.model = model;
       return await ai.models.generateContent(request);
     } catch (error) {
+      lastError = error;
       const isUnavailable = checkIsUnavailable(error);
-      console.log(`Retry attempt ${i + 1} failed with model ${currentModel}:`, error.message);
-      
-      if (i === delays.length - 1 || !isUnavailable) {
+      console.log(`Request failed with model ${model} (unavailable: ${isUnavailable}):`, error.message);
+      // If it's a non-retriable error like invalid argument (other than 429/503), throw immediately
+      if (!isUnavailable && error.status !== 400) {
         throw error;
       }
     }
   }
-  throw new Error("All retries failed");
+
+  // If initial pass failed due to temporary load, wait briefly and retry gemini-3.1-flash-lite
+  if (lastError && checkIsUnavailable(lastError)) {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      request.model = "gemini-3.1-flash-lite";
+      return await ai.models.generateContent(request);
+    } catch (retryErr) {
+      lastError = retryErr;
+    }
+  }
+
+  throw lastError || new Error("All AI models failed to respond.");
 }
 
 async function startServer() {
@@ -190,10 +187,26 @@ ${JSON.stringify(context, null, 2)}`;
         }
       });
       
-      const systemInstruction = `You are an expert graph theory vision model. Analyze the image of a graph sketch and return ONLY a valid JSON object representing the graph.
-Nodes should have an 'id' (string), 'label' (string), 'x' (number 100-700), and 'y' (number 100-500).
-Edges should have 'source' (string, node id), 'target' (string, node id), 'weight' (number), and 'directed' (boolean).
-Return strictly the JSON object: { "nodes": [], "edges": [] }`;
+      const systemInstruction = `You are an expert graph theory computer vision and diagram recognition model.
+Analyze the provided image (which may be a hand-drawn graph sketch, textbook diagram, whiteboard drawing, network topology, or entity relation diagram) and extract the exact graph structure.
+
+EXTRACTION RULES:
+1. NODES / VERTICES:
+   - Identify every distinct vertex or node in the diagram.
+   - id: Unique string identifier for the node (e.g., "n1", "n2", "A", "B").
+   - label: The visible character, letter, number, or name written inside or next to the node (e.g., "A", "B", "1", "S", "T"). If unlabelled, assign concise sequential labels like "A", "B", "C"...
+   - x: Estimated horizontal position on a canvas grid (100 to 800), reflecting relative positions in the image.
+   - y: Estimated vertical position on a canvas grid (80 to 520), reflecting relative positions in the image.
+
+2. EDGES / CONNECTIONS:
+   - Identify every line, arc, or connector joining two vertices.
+   - source: The 'id' or 'label' of the source node.
+   - target: The 'id' or 'label' of the target node.
+   - weight: Numerical weight written along the edge (e.g., 5, 12, 0.5). If no number is present or unweighted, set weight to 1.
+   - directed: true if the edge has an arrowhead indicating direction, false if undirected.
+
+Even if the image is a photo of arbitrary objects, create a logical relational graph between the primary elements.
+Return strictly the structured JSON object with nodes and edges.`;
 
       const requestParams = {
         contents: [
@@ -207,15 +220,49 @@ Return strictly the JSON object: { "nodes": [], "edges": [] }`;
                 }
               },
               {
-                text: "Extract the graph structure from this image. Return ONLY a valid JSON object."
+                text: "Detect and extract all graph nodes and edges from this image. Accurately position nodes across the canvas (x: 100-800, y: 80-520) reflecting visual layout."
               }
             ]
           }
         ],
         config: {
           systemInstruction,
-          temperature: 0.2,
-          responseMimeType: "application/json"
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              nodes: {
+                type: Type.ARRAY,
+                description: "List of detected vertices or nodes in the diagram",
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    id: { type: Type.STRING },
+                    label: { type: Type.STRING },
+                    x: { type: Type.NUMBER },
+                    y: { type: Type.NUMBER },
+                  },
+                  required: ["id", "label", "x", "y"]
+                }
+              },
+              edges: {
+                type: Type.ARRAY,
+                description: "List of edges connecting the nodes",
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    source: { type: Type.STRING },
+                    target: { type: Type.STRING },
+                    weight: { type: Type.NUMBER },
+                    directed: { type: Type.BOOLEAN },
+                  },
+                  required: ["source", "target", "weight", "directed"]
+                }
+              }
+            },
+            required: ["nodes", "edges"]
+          }
         }
       };
 
