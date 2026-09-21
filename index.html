@@ -3,13 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" href="/logo-icon.png" />
+    <link rel="apple-touch-icon" href="/logo-icon.png" />
+    <link rel="canonical" href="/" />
+
     <script>if (localStorage.getItem("pathfinder-theme") === "dark") document.documentElement.classList.add("dark");</script>
+
     <title>PATHFINDER | Shortest Path Algorithm Laboratory</title>
-    <meta name="description" content="A university-level Data Structures and Algorithms educational application." />
-    <meta property="og:title" content="PATHFINDER | Shortest Path Algorithm Laboratory" />
-    <meta property="og:description" content="A university-level Data Structures and Algorithms educational application." />
+    <meta name="description" content="Shortest Path Algorithm Laboratory - A university-level Data Structures and Algorithms educational application featuring interactive graph visualization, step-by-step trace execution, side-by-side performance benchmarks, and AI-powered tutoring." />
+    <meta name="keywords" content="graph algorithms, shortest path, Dijkstra, Bellman-Ford, A*, Floyd-Warshall, BFS, computer science education, data structures" />
+    <meta name="author" content="PATHFINDER Laboratory" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:site_name" content="PATHFINDER" />
+    <meta property="og:title" content="PATHFINDER | Shortest Path Algorithm Laboratory" />
+    <meta property="og:description" content="Shortest Path Algorithm Laboratory - A university-level Data Structures and Algorithms educational application featuring interactive graph visualization, step-by-step trace execution, side-by-side performance benchmarks, and AI-powered tutoring." />
+    <meta property="og:image" content="/logo-icon.png" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PATHFINDER | Shortest Path Algorithm Laboratory" />
+    <meta name="twitter:description" content="Interactive shortest path algorithm visualization and comparison platform for computer science students and educators." />
+    <meta name="twitter:image" content="/logo-icon.png" />
+
+    <!-- Schema.org EducationalApplication Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PATHFINDER",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All modern web browsers",
+      "description": "A university-level Data Structures and Algorithms laboratory for learning, simulating, comparing, and teaching shortest path algorithms including Dijkstra, Bellman-Ford, Floyd-Warshall, A*, and BFS.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Interactive canvas graph editing with directed and undirected weighted edges",
+        "Step-by-step visualization for 10 shortest path algorithms",
+        "Side-by-side algorithmic complexity and execution benchmarks",
+        "Dynamic distance matrices and live trace logs",
+        "High-resolution PNG, vector SVG, and printable lab report exports",
+        "AI algorithm tutor for contextual analysis and question answering",
+        "Camera and image recognition for textbook and whiteboard diagrams"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

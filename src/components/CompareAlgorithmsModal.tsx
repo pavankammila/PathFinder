@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Loader2 } from 'lucide-react';
+import { X, Play, Loader2, Bot } from 'lucide-react';
 import { Graph, AlgorithmType } from '../types';
 import { algorithmMetadata } from '../algorithms/metadata';
 import { validateAlgorithmRequirements } from '../algorithms/validation';
@@ -11,6 +11,7 @@ interface CompareAlgorithmsModalProps {
   graph: Graph;
   sourceId: string | null;
   destId: string | null;
+  onAskAI?: (query: string) => void;
 }
 
 interface RunResult {
@@ -23,7 +24,7 @@ interface RunResult {
   executionTimeMs?: number;
 }
 
-export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destId }: CompareAlgorithmsModalProps) {
+export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destId, onAskAI }: CompareAlgorithmsModalProps) {
   const [selectedAlgos, setSelectedAlgos] = useState<Set<AlgorithmType>>(new Set([
     AlgorithmType.BFS, AlgorithmType.DIJKSTRA, AlgorithmType.BELLMAN_FORD
   ]));
@@ -37,7 +38,9 @@ export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destI
     } else {
       document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -124,11 +127,14 @@ export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destI
   const algoList = Object.values(AlgorithmType);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Compare Algorithms</h2>
-          <button onClick={onClose} className="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="surface-panel bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950">
+          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Compare Algorithms</h2>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -138,7 +144,7 @@ export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destI
           {/* Selection Panel */}
           <div className="w-full md:w-1/3 flex flex-col gap-4">
             <div>
-              <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Select Algorithms</h3>
+              <h3 className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Select Algorithms</h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4">Choose which algorithms to run on the current graph state. Identical source and destination nodes will be used.</p>
               
               <div className="space-y-1 max-h-[40vh] overflow-y-auto pr-2">
@@ -171,7 +177,22 @@ export function CompareAlgorithmsModal({ isOpen, onClose, graph, sourceId, destI
 
           {/* Results Panel */}
           <div className="w-full md:w-2/3 border-t md:border-t-0 md:border-l border-zinc-200 dark:border-zinc-800 pt-6 md:pt-0 md:pl-6 flex flex-col">
-            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-4">Results</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">Benchmark Results</h3>
+              {results.length > 0 && onAskAI && (
+                <button
+                  onClick={() => {
+                    const summary = results.map(r => `${r.algorithm}: ${r.success ? `Cost=${r.cost}, Visited=${r.nodesVisited}, Explored=${r.edgesExplored}, Time=${r.executionTimeMs?.toFixed(2)}ms` : `Failed (${r.message})`}`).join(' | ');
+                    onAskAI(`Can you analyze these benchmark results from my graph comparison: ${summary}? Compare their efficiency, visited node counts, and theoretical time complexities.`);
+                    onClose();
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span>Analyze with AI</span>
+                </button>
+              )}
+            </div>
             
             {results.length === 0 && !isRunning ? (
               <div className="flex-1 flex items-center justify-center text-center p-8 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">

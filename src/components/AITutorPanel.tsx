@@ -37,7 +37,6 @@ export function AITutorPanel({ isOpen, onClose, buildContext, externalQuery, onE
 
   const quickActions = getQuickActions(currentAlgorithm);
 
-
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (messagesEndRef.current && messagesEndRef.current.parentElement) {

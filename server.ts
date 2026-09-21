@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -60,9 +61,14 @@ async function executeWithRetry(ai, request) {
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 10000;
+  const PORT = 3000;
   
   app.use(express.json({ limit: '10mb' }));
+
+  // Health check endpoint for Cloud Run and proxy routing
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
 
   // AI endpoint
   app.post("/api/ai/chat", async (req, res) => {
@@ -282,15 +288,18 @@ Return strictly the structured JSON object with nodes and edges.`;
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  // Vite middleware for development vs static files for production
+  const isProduction = process.env.NODE_ENV === "production" || (typeof __filename !== "undefined" && __filename.endsWith(".cjs"));
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = __dirname;
+    const distPath = fs.existsSync(path.join(process.cwd(), 'dist'))
+      ? path.join(process.cwd(), 'dist')
+      : (typeof __dirname !== 'undefined' ? __dirname : process.cwd());
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));

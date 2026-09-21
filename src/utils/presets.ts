@@ -30,11 +30,11 @@ export const PRESETS: Record<string, { nodes: Node[], edges: Edge[] }> = {
     edges: [
       { id: 'e1', source: 'n1', target: 'n2', weight: 7, directed: true },
       { id: 'e2', source: 'n1', target: 'n3', weight: 9, directed: true },
-      { id: 'e3', source: 'n2', target: 'n3', weight: -2, directed: true },
+      { id: 'e3', source: 'n2', target: 'n3', weight: 2, directed: true },
       { id: 'e4', source: 'n2', target: 'n4', weight: 4, directed: true },
       { id: 'e5', source: 'n3', target: 'n5', weight: 3, directed: true },
       { id: 'e6', source: 'n4', target: 'n6', weight: 1, directed: true },
-      { id: 'e7', source: 'n5', target: 'n4', weight: -3, directed: true },
+      { id: 'e7', source: 'n5', target: 'n4', weight: 3, directed: true },
       { id: 'e8', source: 'n5', target: 'n6', weight: 2, directed: true }
     ]
   },

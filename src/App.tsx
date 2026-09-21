@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Play, Pause, SkipForward, RotateCcw, Plus, Link2, Trash2,
   MapPin, Flag, Camera, Settings2, Map, Moon, Sun, Eraser, Bot, PanelLeftClose, PanelRightClose, PanelLeftOpen, PanelRightOpen, Undo2, Redo2,
-  ChevronDown, Check, Share2, Sparkles
+  ChevronDown, Check, Share2, Sparkles, Download
 } from 'lucide-react';
 import { Node, Edge, AlgorithmStep, OperationType, AlgorithmType } from './types';
 import { GraphCanvas } from './components/GraphCanvas';
@@ -13,6 +13,7 @@ import { AlgorithmMetadata, algorithmMetadata } from './algorithms/metadata';
 import { validateAlgorithmRequirements } from './algorithms/validation';
 import * as algos from './algorithms';
 import { CompareAlgorithmsModal } from './components/CompareAlgorithmsModal';
+import { ExportModal } from './components/ExportModal';
 
 import { PRESETS } from './utils/presets';
 import { CameraModal } from './components/CameraModal';
@@ -74,6 +75,7 @@ export default function App() {
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isTutorOpen, setIsTutorOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [comparisonResults, setComparisonResults] = useState<any[]>([]);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
@@ -108,24 +110,6 @@ export default function App() {
   }, [future, nodes, edges]);
   const [tutorQuery, setTutorQuery] = useState<string | undefined>();
   const openCameraModal = () => setIsCameraModalOpen(true);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-      if ((e.key === 'y' && (e.ctrlKey || e.metaKey)) || (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
-        e.preventDefault();
-        handleRedo();
-      }
-    };
-    
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleGlobalKeyDown);
-    };
-  }, [handleUndo, handleRedo]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -503,6 +487,22 @@ export default function App() {
   const getModeClass = (m: EditorMode) => `w-full flex items-center gap-2 px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === m ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}`;
   const getDeleteModeClass = () => `w-full flex items-center gap-2 px-3 py-3 sm:py-2 xl:py-1.5 rounded text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${mode === EditorMode.DELETE ? 'bg-red-600 text-white dark:text-zinc-900 shadow-sm' : 'text-red-600 hover:bg-red-50 hover:text-red-700'}`;
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
   const isExecutionActive = execState !== ExecutionState.IDLE;
 
   return (
@@ -510,13 +510,16 @@ export default function App() {
       {/* HEADER */}
       <header className="min-h-[48px] h-auto py-2 sm:py-0 sm:h-12 surface-header flex flex-wrap items-center justify-between px-4 shrink-0 z-50 gap-y-2">
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Desktop/Tablet Logo: exact 3:1 integer bounds to prevent subpixel blur */}
+          {/* Brand Heading for Accessibility & SEO */}
+          <h1 className="sr-only">PATHFINDER - Shortest Path Algorithm Laboratory</h1>
+
+          {/* Desktop/Tablet Logo */}
           <img 
             src="/logo-full.png" 
             alt="PathFinder" 
             className="hidden sm:block h-[28px] w-[84px] object-contain invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0" 
           />
-          {/* Mobile Icon: exact integer bounds to prevent subpixel blur, forcing 1:1 since 1.03 is visually imperceptible */}
+          {/* Mobile Icon */}
           <div className="flex sm:hidden items-center justify-center">
             <img 
               src="/logo-icon.png" 
@@ -530,53 +533,91 @@ export default function App() {
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2 sm:gap-6 justify-center w-full md:w-auto order-last md:order-none mt-1 md:mt-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-6 justify-center w-full md:w-auto order-last md:order-none mt-1 md:mt-0" role="toolbar" aria-label="Simulation playback controls">
           <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5 mr-2">
-            <button onClick={handleUndo} disabled={past.length === 0} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Undo (Ctrl+Z)">
+            <button 
+              onClick={handleUndo} 
+              disabled={past.length === 0} 
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
+              title="Undo"
+            >
               <Undo2 className="w-3.5 h-3.5" />
             </button>
-            <button onClick={handleRedo} disabled={future.length === 0} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Redo (Ctrl+Y)">
+            <button 
+              onClick={handleRedo} 
+              disabled={future.length === 0} 
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
+              title="Redo"
+            >
               <Redo2 className="w-3.5 h-3.5" />
             </button>
           </div>
           <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5">
-            <button onClick={handleReset} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Reset">
+            <button 
+              onClick={handleReset} 
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all" 
+              title="Reset"
+            >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
-            <button onClick={handlePause} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Pause">
+            <button 
+              onClick={handlePause} 
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all" 
+              title="Pause"
+            >
               <Pause className="w-3.5 h-3.5 fill-current" />
             </button>
-            <button onClick={handleStep} disabled={execState === ExecutionState.COMPLETED} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none" title="Step">
+            <button 
+              onClick={handleStep} 
+              disabled={execState === ExecutionState.COMPLETED} 
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
+              title="Step Forward"
+            >
               <SkipForward className="w-3.5 h-3.5" />
             </button>
-            <button onClick={handleRun} disabled={execState === ExecutionState.RUNNING || execState === ExecutionState.COMPLETED} className="w-7 h-7 flex items-center justify-center rounded bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-400 hover:to-cyan-400 disabled:from-zinc-300 disabled:to-zinc-300 dark:disabled:from-zinc-800 dark:disabled:to-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-500 border-0 disabled:pointer-events-none transition-all focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none ml-0.5" title="Run">
+            <button 
+              onClick={handleRun} 
+              disabled={execState === ExecutionState.RUNNING || execState === ExecutionState.COMPLETED} 
+              className="w-7 h-7 flex items-center justify-center rounded bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-400 hover:to-cyan-400 disabled:from-zinc-300 disabled:to-zinc-300 dark:disabled:from-zinc-800 dark:disabled:to-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-500 border-0 disabled:pointer-events-none transition-all ml-0.5" 
+              title="Run Algorithm"
+            >
               <Play className="w-3.5 h-3.5 fill-current" />
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={() => setIsCompareModalOpen(true)}
-            className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
+            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            title="Benchmark and compare algorithms on this graph"
           >
-            <Play className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">COMPARE ALGOS</span>
+            <Play className="w-3 h-3" />
+            <span className="hidden sm:inline">COMPARE</span>
+          </button>
+          <button 
+            onClick={() => setIsExportModalOpen(true)}
+            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            title="Export PNG, SVG, Code, or Lab Report"
+          >
+            <Download className="w-3 h-3" />
+            <span className="hidden sm:inline">EXPORT</span>
           </button>
           <button 
             onClick={handleShareGraph}
-            title="Share Graph"
-            className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none"
+            title="Copy shareable link for this graph"
+            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <Share2 className="w-3 h-3" />
             <span className="hidden sm:inline">SHARE</span>
           </button>
           <button 
             onClick={openCameraModal}
-            className="flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors"
+            title="Scan textbook diagram or whiteboard graph"
           >
-            <Camera className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">CAMERA INPUT</span>
+            <Camera className="w-3 h-3" />
+            <span className="hidden sm:inline">CAMERA</span>
             <span className="sm:hidden">SCAN</span>
           </button>
         </div>
@@ -584,7 +625,7 @@ export default function App() {
 
       <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
         {/* LEFT SIDEBAR */}
-        <aside className={`w-full xl:w-64 border-b xl:border-b-0 xl:border-r border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-2 xl:order-none max-xl:!flex p-4 sm:p-6 xl:p-4 ${!isLeftSidebarOpen ? "hidden xl:hidden" : ""}`}>
+        <aside className={`w-full xl:w-64 border-b xl:border-b-0 xl:border-r border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-2 xl:order-none p-4 sm:p-6 xl:p-4 ${!isLeftSidebarOpen ? "hidden xl:hidden" : ""}`}>
           <div className="space-y-6">
             
             <section>
@@ -675,7 +716,7 @@ export default function App() {
         </aside>
 
         {/* CENTER CANVASES & PANELS */}
-        <main className="flex-1 flex flex-col min-w-0 bg-transparent relative order-1 xl:order-none min-h-[350px] sm:min-h-[400px] xl:min-h-0 xl:min-h-0 shrink-0 xl:shrink">
+        <main className="flex-1 flex flex-col min-w-0 bg-transparent relative order-1 xl:order-none min-h-[350px] sm:min-h-[400px] xl:min-h-0 shrink-0 xl:shrink">
           {!isLeftSidebarOpen && (
             <button
               onClick={() => setIsLeftSidebarOpen(true)}
@@ -830,7 +871,7 @@ export default function App() {
         </main>
 
         {/* RIGHT SIDEBAR: INSPECTOR */}
-        <aside className={`w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-3 xl:order-none max-xl:!flex p-4 sm:p-6 xl:p-4 ${!isRightSidebarOpen ? 'hidden xl:hidden' : ''}`}>
+        <aside className={`w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-zinc-200/50 dark:border-zinc-800/50 bg-transparent flex flex-col shrink-0 xl:overflow-y-auto order-3 xl:order-none p-4 sm:p-6 xl:p-4 ${!isRightSidebarOpen ? 'hidden xl:hidden' : ''}`}>
           <div className="space-y-6">
             
             <section>
@@ -1056,7 +1097,7 @@ export default function App() {
       </div>
 
       {/* BOTTOM: EXECUTION TRACE */}
-      <footer className="h-[400px] xl:h-32 border-t border-zinc-200/50 dark:border-zinc-800/50 surface-panel flex flex-col shrink-0">
+      <footer className="h-48 xl:h-32 border-t border-zinc-200/50 dark:border-zinc-800/50 surface-panel flex flex-col shrink-0">
         <div className="h-8 border-b border-zinc-200/30 dark:border-zinc-800/30/50 flex items-center px-4 justify-between bg-black/5 dark:bg-white/5/50">
           <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">Execution Trace Log</span>
         </div>
@@ -1136,6 +1177,21 @@ export default function App() {
         graph={{ nodes, edges }}
         sourceId={sourceNodeId}
         destId={destNodeId}
+        onAskAI={(query) => {
+          setTutorQuery(query);
+          setIsTutorOpen(true);
+        }}
+      />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        nodes={nodes}
+        edges={edges}
+        currentAlgorithm={algo}
+        executionResult={algoResult}
+        sourceNodeId={sourceNodeId}
+        destNodeId={destNodeId}
+        theme={theme}
       />
       <AITutorPanel currentAlgorithm={algo} isOpen={isTutorOpen}
         onClose={() => setIsTutorOpen(false)}

@@ -465,16 +465,18 @@ export function GraphCanvas({
   const handleCenter = () => {
     if (!svgRef.current || !zoomBehavior.current) return;
     const svg = d3.select(svgRef.current);
-    svg.transition().duration(750).call(zoomBehavior.current.transform, d3.zoomIdentity);
+    svg.transition().duration(500).call(zoomBehavior.current.transform, d3.zoomIdentity);
   };
 
   return (
     <div className="w-full h-full relative">
       <svg ref={svgRef} className="w-full h-full outline-none touch-none" tabIndex={0} />
+
+      {/* Floating Canvas Controls */}
       <button 
         onClick={handleCenter}
-        className="absolute bottom-6 right-6 p-2 surface-floating rounded-full text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:ring-2 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-100 focus-visible:outline-none z-20"
-        title="Center Graph"
+        className="absolute bottom-4 right-4 p-2 surface-floating text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-lg shadow-sm border border-zinc-200/50 dark:border-zinc-800/50 transition-colors z-20"
+        title="Reset View (Center)"
       >
         <Focus className="w-4 h-4" />
       </button>
