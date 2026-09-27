@@ -533,88 +533,111 @@ export default function App() {
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2 sm:gap-6 justify-center w-full md:w-auto order-last md:order-none mt-1 md:mt-0" role="toolbar" aria-label="Simulation playback controls">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5 mr-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 justify-center w-full md:w-auto order-last md:order-none mt-1 md:mt-0" role="toolbar" aria-label="Simulation playback controls">
+          <div className="flex items-center gap-1 sm:gap-1.5" role="group" aria-label="History controls">
             <button 
+              type="button"
               onClick={handleUndo} 
               disabled={past.length === 0} 
-              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
-              title="Undo"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              title="Undo (Ctrl+Z)"
+              aria-label="Undo"
             >
               <Undo2 className="w-3.5 h-3.5" />
             </button>
             <button 
+              type="button"
               onClick={handleRedo} 
               disabled={future.length === 0} 
-              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
-              title="Redo"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              title="Redo (Ctrl+Y)"
+              aria-label="Redo"
             >
               <Redo2 className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200/50 dark:border-zinc-800/50 p-0.5">
+
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block" aria-hidden="true" />
+
+          <div className="flex items-center gap-1 sm:gap-1.5" role="group" aria-label="Playback controls">
             <button 
+              type="button"
               onClick={handleReset} 
-              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all" 
-              title="Reset"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              title="Reset simulation"
+              aria-label="Reset"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button 
+              type="button"
               onClick={handlePause} 
-              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all" 
-              title="Pause"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              title="Pause simulation"
+              aria-label="Pause"
             >
               <Pause className="w-3.5 h-3.5 fill-current" />
             </button>
             <button 
+              type="button"
               onClick={handleStep} 
               disabled={execState === ExecutionState.COMPLETED} 
-              className="w-7 h-7 flex items-center justify-center rounded hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50 disabled:pointer-events-none transition-all" 
-              title="Step Forward"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
+              title="Step forward"
+              aria-label="Step Forward"
             >
               <SkipForward className="w-3.5 h-3.5" />
             </button>
             <button 
+              type="button"
               onClick={handleRun} 
               disabled={execState === ExecutionState.RUNNING || execState === ExecutionState.COMPLETED} 
-              className="w-7 h-7 flex items-center justify-center rounded bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-400 hover:to-cyan-400 disabled:from-zinc-300 disabled:to-zinc-300 dark:disabled:from-zinc-800 dark:disabled:to-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-500 border-0 disabled:pointer-events-none transition-all ml-0.5" 
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-sm hover:shadow active:scale-95 border border-blue-500/80 dark:border-blue-400/80 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:border-zinc-200 dark:disabled:border-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600 disabled:pointer-events-none disabled:shadow-none transition-all duration-150 ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" 
               title="Run Algorithm"
+              aria-label="Run Algorithm"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button 
+            type="button"
             onClick={() => setIsCompareModalOpen(true)}
-            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            className="h-8 flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 sm:px-3.5 rounded-full text-[10px] font-bold tracking-wider hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             title="Benchmark and compare algorithms on this graph"
+            aria-label="Compare algorithms"
           >
             <Play className="w-3 h-3" />
             <span className="hidden sm:inline">COMPARE</span>
           </button>
           <button 
+            type="button"
             onClick={() => setIsExportModalOpen(true)}
-            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            className="h-8 flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 sm:px-3.5 rounded-full text-[10px] font-bold tracking-wider hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             title="Export PNG, SVG, Code, or Lab Report"
+            aria-label="Export graph and report"
           >
             <Download className="w-3 h-3" />
             <span className="hidden sm:inline">EXPORT</span>
           </button>
           <button 
+            type="button"
             onClick={handleShareGraph}
             title="Copy shareable link for this graph"
-            className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            aria-label="Share graph link"
+            className="h-8 flex items-center gap-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 px-3 sm:px-3.5 rounded-full text-[10px] font-bold tracking-wider hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-600 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <Share2 className="w-3 h-3" />
             <span className="hidden sm:inline">SHARE</span>
           </button>
           <button 
+            type="button"
             onClick={openCameraModal}
-            className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 sm:px-3 py-1.5 rounded text-[10px] font-bold hover:bg-indigo-100 transition-colors"
+            className="h-8 flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 px-3 sm:px-3.5 rounded-full text-[10px] font-bold tracking-wider hover:bg-indigo-100 dark:hover:bg-indigo-900/50 active:bg-indigo-200 dark:active:bg-indigo-900/70 active:scale-95 transition-all duration-150 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             title="Scan textbook diagram or whiteboard graph"
+            aria-label="Scan diagram with camera"
           >
             <Camera className="w-3 h-3" />
             <span className="hidden sm:inline">CAMERA</span>
